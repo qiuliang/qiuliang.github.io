@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width initial-scale=1" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <title>Welcome to Jekyll!</title>
+    <title>使用Nginx结合Jekyll搭建静态博客</title>
     <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.
 ">
 
 
-    <link rel="canonical" href="http://yourdomain.com/jekyll/update/2014/10/28/welcome-to-jekyll.html">
+    <link rel="canonical" href="http://yourdomain.com/jekyll/2013/12/14/jekyll-with-nginx.html">
 
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/pygment_trac.css">
@@ -73,24 +73,104 @@
         <section>
             <div class="post">
 
-    <h1 class="post-title">Welcome to Jekyll!</h1>
-    <p class="post-meta">Oct 28, 2014</p>
+    <h1 class="post-title">使用Nginx结合Jekyll搭建静态博客</h1>
+    <p class="post-meta">Dec 14, 2013</p>
 
   <article class="post-content">
-    <p>You’ll find this post in your <code>_posts</code> directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run <code>jekyll serve --watch</code>, which launches a web server and auto-regenerates your site when a file is updated.</p>
+    <p>简单介绍一下Jekyll，是一个采用Ruby开发的一个静态博客引擎，非常的轻量级和简洁，原生支持markdown语法，个人感觉也适用于wiki类应用。配合disquz插件或国内的友言等，也可实现评论功能。</p>
 
-<p>To add new posts, simply add a file in the <code>_posts</code> directory that follows the convention <code>YYYY-MM-DD-name-of-post.ext</code> and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.</p>
+<h2 id="section"><strong>环境准备</strong></h2>
 
-<p>Jekyll also offers powerful support for code snippets:</p>
+<ul>
+  <li>单独的服务器或虚拟机或vps</li>
+  <li>CentOS</li>
+  <li>Ruby</li>
+  <li>RubyGem</li>
+</ul>
 
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">def</span> <span class="nf">print_hi</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
-  <span class="nb">puts</span> <span class="s2">&quot;Hi, </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">&quot;</span>
-<span class="k">end</span>
-<span class="n">print_hi</span><span class="p">(</span><span class="s1">&#39;Tom&#39;</span><span class="p">)</span>
-<span class="c1">#=&gt; prints &#39;Hi, Tom&#39; to STDOUT.</span></code></pre></div>
+<h2 id="section-1"><strong>安装</strong></h2>
+<p>执行如下的命令后，即可在服务器上运行一个jekyll站点，内部的WebServer采用Ruby的Webrick，默认端口为4000，可通过http://yourdomain:4000来进行浏览。</p>
 
-<p>Check out the <a href="http://jekyllrb.com">Jekyll docs</a> for more info on how to get the most out of Jekyll. File all bugs/feature requests at <a href="https://github.com/jekyll/jekyll">Jekyll’s GitHub repo</a>. If you have questions, you can ask them on <a href="https://github.com/jekyll/jekyll-help">Jekyll’s dedicated Help repository</a>.</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">~ <span class="nv">$ </span>gem install jekyll
+~ <span class="nv">$ </span>jekyll new jekyll_site
+~ <span class="nv">$ </span><span class="nb">cd </span>jekyll_site
+~ <span class="nv">$ </span>jekyll serve</code></pre></div>
 
+<p>因为Jekyll产生的都是静态html文件，因此也可采用其他WebServer，例如：Nginx、Apache等。</p>
+
+<h3 id="nginx">配置Nginx</h3>
+
+<p>关键配置截图如下：</p>
+
+<p>![20131213160522.jpg](C:/Users/1/Desktop/20131213160522.jpg “”)</p>
+
+<h2 id="section-2"><strong>快速上手</strong></h2>
+
+<h3 id="section-3">目录结构</h3>
+<p>在正式开始写博客之前，需要先了解一下Jekyll的基本目录结构。</p>
+
+<ul>
+  <li>
+    <p>_layouts</p>
+
+    <p>公共模板文件目录，例如头尾、需要调用的样式和脚本等。</p>
+  </li>
+  <li>
+    <p>_posts</p>
+
+    <p>所有的文章都需要放在此目录下，支持markdown格式的源文件。</p>
+  </li>
+  <li>
+    <p>_site</p>
+
+    <p>Jekyll生成的网页文件目录，纯静态，因此也可用其他WebServer把站点根目录指向此目录来使用其他WebServer。</p>
+  </li>
+  <li>
+    <p>css</p>
+
+    <p>样式文件存放处。</p>
+  </li>
+  <li>
+    <p>index.html</p>
+
+    <p>首页模板，可使用Jekyll变量。</p>
+  </li>
+  <li>
+    <p>_config.yml</p>
+
+    <p>网站的各种配置信息。</p>
+  </li>
+</ul>
+
+<h3 id="section-4">发布文章</h3>
+
+<p>只需把你的markdown源文件拷贝到_posts目录即可，也可结合git来进行管理。
+然后执行以下命令：（需要进入到Jekyll根目录下）</p>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">~ <span class="nv">$ </span>jekyll build</code></pre></div>
+
+<p>执行完后，会将markdown源文件转换为html文档。</p>
+
+<blockquote>
+  <p>注意：需要在markdown源文件中添加jekyll头信息。并且markdown源文件的命令必须符合格式：2013-12-12-title</p>
+</blockquote>
+
+<div class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="nn">---</span>
+<span class="l-Scalar-Plain">layout</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">post</span>
+<span class="l-Scalar-Plain">title</span><span class="p-Indicator">:</span>  <span class="s">&quot;Advanced</span><span class="nv"> </span><span class="s">Ruby</span><span class="nv"> </span><span class="s">String</span><span class="nv"> </span><span class="s">Tips&quot;</span>
+<span class="l-Scalar-Plain">date</span><span class="p-Indicator">:</span>   <span class="l-Scalar-Plain">2013-12-12 18:24:52</span>
+<span class="l-Scalar-Plain">categories</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">ruby</span>
+<span class="nn">---</span></code></pre></div>
+
+<p>title即页面的title信息，categories即文件目录，用空格分开代表多级目录。上面的头信息可代表如下的url：<code>http://yourdomain/ruby/2013/12/12/title.html</code></p>
+
+<h2 id="section-5"><strong>参考</strong></h2>
+
+<ul>
+  <li><a href="http://www.jekyllrb.com/">官方网站</a></li>
+  <li><a href="http://jekyllcn.com/" title="Jekyll官网中国镜像">Jekyll官网中国镜像</a></li>
+  <li><a href="https://github.com/mojombo/jekyll">项目源码</a></li>
+</ul>
 
   </article>
 

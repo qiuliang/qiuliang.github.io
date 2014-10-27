@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width initial-scale=1" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <title>Welcome to Jekyll!</title>
+    <title>【Ruby on Rails】学习使用generator</title>
     <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.
 ">
 
 
-    <link rel="canonical" href="http://yourdomain.com/jekyll/update/2014/10/28/welcome-to-jekyll.html">
+    <link rel="canonical" href="http://yourdomain.com/ruby/2013/12/13/ruby-on-rails-scaffold.html">
 
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/pygment_trac.css">
@@ -73,23 +73,28 @@
         <section>
             <div class="post">
 
-    <h1 class="post-title">Welcome to Jekyll!</h1>
-    <p class="post-meta">Oct 28, 2014</p>
+    <h1 class="post-title">【Ruby on Rails】学习使用generator</h1>
+    <p class="post-meta">Dec 13, 2013</p>
 
   <article class="post-content">
-    <p>You’ll find this post in your <code>_posts</code> directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run <code>jekyll serve --watch</code>, which launches a web server and auto-regenerates your site when a file is updated.</p>
+    <h2 id="scaffold">scaffold基本使用命令</h2>
 
-<p>To add new posts, simply add a file in the <code>_posts</code> directory that follows the convention <code>YYYY-MM-DD-name-of-post.ext</code> and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">rails generate scaffold Post id:integer title:string</code></pre></div>
 
-<p>Jekyll also offers powerful support for code snippets:</p>
+<p>执行完这条命令后，会自动生成model、view、controller的代码。</p>
 
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">def</span> <span class="nf">print_hi</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
-  <span class="nb">puts</span> <span class="s2">&quot;Hi, </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">&quot;</span>
-<span class="k">end</span>
-<span class="n">print_hi</span><span class="p">(</span><span class="s1">&#39;Tom&#39;</span><span class="p">)</span>
-<span class="c1">#=&gt; prints &#39;Hi, Tom&#39; to STDOUT.</span></code></pre></div>
+<h2 id="faq">FAQ</h2>
+<ol>
+  <li>
+    <p><strong>给model增加一个属性</strong></p>
 
-<p>Check out the <a href="http://jekyllrb.com">Jekyll docs</a> for more info on how to get the most out of Jekyll. File all bugs/feature requests at <a href="https://github.com/jekyll/jekyll">Jekyll’s GitHub repo</a>. If you have questions, you can ask them on <a href="https://github.com/jekyll/jekyll-help">Jekyll’s dedicated Help repository</a>.</p>
+    <p>例如：需要给post这个model增加一个属性“tag”，可执行如下的命令：</p>
+  </li>
+</ol>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">rails g migration AddTagsToPost tag:string</code></pre></div>
+
+<p>执行完成后，会自动在db/migrate目录下生成相应的迁移文件，其中命令行里面的Add[Tags]To[Post]是约定好的格式，其中Tags代表字段名称，Post代表表的名称。然后使用<code>rake db:migrate</code>命令使修改同步到数据库上。</p>
 
 
   </article>

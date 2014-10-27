@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width initial-scale=1" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <title>Welcome to Jekyll!</title>
+    <title>ASP.NET MVC 4 小项目开发总结</title>
     <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.
 ">
 
 
-    <link rel="canonical" href="http://yourdomain.com/jekyll/update/2014/10/28/welcome-to-jekyll.html">
+    <link rel="canonical" href="http://yourdomain.com/asp.net/2013/12/13/aspnet-mvc4-project-summary.html">
 
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/pygment_trac.css">
@@ -73,23 +73,99 @@
         <section>
             <div class="post">
 
-    <h1 class="post-title">Welcome to Jekyll!</h1>
-    <p class="post-meta">Oct 28, 2014</p>
+    <h1 class="post-title">ASP.NET MVC 4 小项目开发总结</h1>
+    <p class="post-meta">Dec 13, 2013</p>
 
   <article class="post-content">
-    <p>You’ll find this post in your <code>_posts</code> directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run <code>jekyll serve --watch</code>, which launches a web server and auto-regenerates your site when a file is updated.</p>
+    <p>项目很小，就是一个企业站的前后台，主要包括新闻模块、产品模块、视频模块、留言。没有什么技术上的难点，大部分就是CRUD操作。开始之前评估开发时间为4天，实际coding时间为3天，debug时间为2天，关于debug时间较长的问题，后面有较为详细的分析。</p>
 
-<p>To add new posts, simply add a file in the <code>_posts</code> directory that follows the convention <code>YYYY-MM-DD-name-of-post.ext</code> and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.</p>
+<h2 id="section">所用技术和工具</h2>
 
-<p>Jekyll also offers powerful support for code snippets:</p>
+<ul>
+  <li>Visual Studio 2012</li>
+  <li>ASP.NET MVC 4</li>
+  <li>Entify Framework 5</li>
+  <li>Sqlite</li>
+  <li>Uploadify</li>
+</ul>
 
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">def</span> <span class="nf">print_hi</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
-  <span class="nb">puts</span> <span class="s2">&quot;Hi, </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">&quot;</span>
-<span class="k">end</span>
-<span class="n">print_hi</span><span class="p">(</span><span class="s1">&#39;Tom&#39;</span><span class="p">)</span>
-<span class="c1">#=&gt; prints &#39;Hi, Tom&#39; to STDOUT.</span></code></pre></div>
+<h2 id="aspnet-mvc-4">关于ASP.NET MVC 4</h2>
 
-<p>Check out the <a href="http://jekyllrb.com">Jekyll docs</a> for more info on how to get the most out of Jekyll. File all bugs/feature requests at <a href="https://github.com/jekyll/jekyll">Jekyll’s GitHub repo</a>. If you have questions, you can ask them on <a href="https://github.com/jekyll/jekyll-help">Jekyll’s dedicated Help repository</a>.</p>
+<p>相比MVC 3，个人感觉并没有太大的变化，也许是一些新特性没有用到。最大的感受是开始支持HTML5。</p>
+
+<h2 id="debug">debug花费时间分析</h2>
+
+<p>除开没有后台页面等其他因素，自身原因分析如下：</p>
+
+<h3 id="section-1">拿到需求后没有进行较为详细的确认</h3>
+
+<p>虽然项目需求简单，但有些地方开始时疏于沟通，最终所省掉的时间还是用在了debug上，甚至更多。</p>
+
+<h3 id="section-2">浏览器兼容性问题</h3>
+
+<p>仅在开发阶段使用chrome浏览器，ie系也仅测试ie10，其余未考虑，后续在浏览器兼容性方面的调试花费了较多的时间。</p>
+
+<p>例如如下的问题：</p>
+
+<ul>
+  <li>
+    <p>ie7下jquery.validate报错</p>
+
+    <blockquote>
+      <p>将<code>this.attr("novalidate", "novalidate");</code> 修改为：
+  <code>if (typeof (Worker) !== "undefined") { this.attr('novalidate', 'novalidate'); }</code></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>ie7下ckeditor的dialog加载iframe窗口高度不正常问题</p>
+
+    <blockquote>
+      <p>尝试了很多网上的解决方案，均不管用，后来使用了一个非常规手段，就是给浏览器加上强制使用ie8模式的meta信息</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>ie8下jquery.validate不起作用</p>
+
+    <blockquote>
+      <p>版本匹配问题：经测试：jquery-1.8.2 with jquery.validate-1.9正常</p>
+    </blockquote>
+  </li>
+</ul>
+
+<h3 id="uploadify">uploadify控件使用不是很熟练</h3>
+
+<p>很多api需要现查官方文档，而且官方站点还需翻墙。同时在集成uploadify到ckeditor里面的时候，也花费了较多的时间，主要是用在查官方文档上面。这块写了较多的js代码，在后续浏览器兼容性方面调试也比较麻烦。</p>
+
+<ul>
+  <li>
+    <p>firefox下上传文件出现http error 302</p>
+
+    <blockquote>
+      <p>网上大部分的情况是firefox和chrome同时出现此问题，基本都是说session的原因，但我的环境chrome却没有出问题。我的解决方案比较简单，就是对上传文件的后台action取消授权检查。应该还是很session有关，更好的解决方案可查询谷歌。</p>
+    </blockquote>
+  </li>
+</ul>
+
+<h3 id="entity-framework-sqlite">Entity Framework sqlite数据源适配问题</h3>
+<p>主要是开始无法新建sqlite数据源，ef的设计器总是报错，无法通过数据库更新实体等。另外sqlite中文模糊查询问题。</p>
+
+<ul>
+  <li>
+    <p>设计器报错问题</p>
+
+    <blockquote>
+      <p>需要到sqlite官网下载合适的数据源驱动程序
+<a href="http://system.data.sqlite.org/index.html/doc/trunk/www/downloads.wiki">http://system.data.sqlite.org/index.html/doc/trunk/www/downloads.wiki</a></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>sqlite中文字符串模糊查询问题</p>
+
+    <blockquote>
+      <p>原来使用的方式：dbcontext.Post.Where(t=&gt;t.Name.Contains(s))，对应的sql语句为charindex，改为：list = context.Database.SqlQuery<product>(string.Format("select * from product where name like '%{0}%'",arcTitle)).AsQueryable();</product></p>
+    </blockquote>
+  </li>
+</ul>
 
 
   </article>
