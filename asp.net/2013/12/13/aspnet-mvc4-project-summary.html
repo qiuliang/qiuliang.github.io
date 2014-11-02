@@ -12,9 +12,9 @@
     -->
     <meta charset="utf-8" />
     <title>
-        
-            ASP.NET MVC 4 小项目开发总结
-                 
+
+        ASP.NET MVC 4 小项目开发总结
+
     </title>
     <meta name="generator" content="Jekyll" />
     <meta name="author" content="" />
@@ -30,233 +30,233 @@
     <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
 </head>
 <body id="violet">
-    <div class="page-wrapper">
-        <section class="head" id="violet-head">
-            <header class="header" id="violet-header">
-                <h1 class="logo"><a href="http://localhost:4000">Qiuliang's Site</a></h1>
-                <h2 class="subtitle">君子乐胥，受天之佑</h2>
-            </header>
-            <nav class="nav" id="violet-nav">
-                <ul class="nav-list">
-                    
-                    
-                    
-                    <li class="nav-item ">
-                        <a href="/index.html">
-                            首页
-                        </a>
-                        
-                    </li>
-                    
-                    
-                    
-                    <li class="nav-item ">
-                        <a href="/archives.html">
-                            文章归档
-                        </a>
-                        
-                    </li>
-                    
-                    
-                    
-                    <li class="nav-item ">
-                        <a href="/contact.html">
-                            联系我
-                        </a>
-                        
-                    </li>
-                    
-                    
-                    
-                    <li class="nav-item ">
-                        <a href="https://github.com/qiuliang/qiuliang.github.io">
-                            View on github
-                        </a>
-                        
-                    </li>
-                    
-                </ul>
-            </nav>
-        </section>
-        <section class="main" id="violet-main">
-            <article class="main-article main-article-page">
-    <div class="violet-title">
-        <h3 class="violet-title-item">ASP.NET MVC 4 小项目开发总结</h3>
-    </div>
-    <div class="violet-post">
-        <p class="main-article-meta"><time pubdate="">2013-12-13</time></p>
-        <div class="main-article-contant">
-            <p>项目很小，就是一个企业站的前后台，主要包括新闻模块、产品模块、视频模块、留言。没有什么技术上的难点，大部分就是CRUD操作。开始之前评估开发时间为4天，实际coding时间为3天，debug时间为2天，关于debug时间较长的问题，后面有较为详细的分析。</p>
-
-<h2 id="section">所用技术和工具</h2>
-
-<ul>
-  <li>Visual Studio 2012</li>
-  <li>ASP.NET MVC 4</li>
-  <li>Entify Framework 5</li>
-  <li>Sqlite</li>
-  <li>Uploadify</li>
-</ul>
-
-<h2 id="aspnet-mvc-4">关于ASP.NET MVC 4</h2>
-
-<p>相比MVC 3，个人感觉并没有太大的变化，也许是一些新特性没有用到。最大的感受是开始支持HTML5。</p>
-
-<h2 id="debug">debug花费时间分析</h2>
-
-<p>除开没有后台页面等其他因素，自身原因分析如下：</p>
-
-<h3 id="section-1">拿到需求后没有进行较为详细的确认</h3>
-
-<p>虽然项目需求简单，但有些地方开始时疏于沟通，最终所省掉的时间还是用在了debug上，甚至更多。</p>
-
-<h3 id="section-2">浏览器兼容性问题</h3>
-
-<p>仅在开发阶段使用chrome浏览器，ie系也仅测试ie10，其余未考虑，后续在浏览器兼容性方面的调试花费了较多的时间。</p>
-
-<p>例如如下的问题：</p>
-
-<ul>
-  <li>
-    <p>ie7下jquery.validate报错</p>
-
-    <blockquote>
-      <p>将<code>this.attr("novalidate", "novalidate");</code> 修改为：
-  <code>if (typeof (Worker) !== "undefined") { this.attr('novalidate', 'novalidate'); }</code></p>
-    </blockquote>
-  </li>
-  <li>
-    <p>ie7下ckeditor的dialog加载iframe窗口高度不正常问题</p>
-
-    <blockquote>
-      <p>尝试了很多网上的解决方案，均不管用，后来使用了一个非常规手段，就是给浏览器加上强制使用ie8模式的meta信息</p>
-    </blockquote>
-  </li>
-  <li>
-    <p>ie8下jquery.validate不起作用</p>
-
-    <blockquote>
-      <p>版本匹配问题：经测试：jquery-1.8.2 with jquery.validate-1.9正常</p>
-    </blockquote>
-  </li>
-</ul>
-
-<h3 id="uploadify">uploadify控件使用不是很熟练</h3>
-
-<p>很多api需要现查官方文档，而且官方站点还需翻墙。同时在集成uploadify到ckeditor里面的时候，也花费了较多的时间，主要是用在查官方文档上面。这块写了较多的js代码，在后续浏览器兼容性方面调试也比较麻烦。</p>
-
-<ul>
-  <li>
-    <p>firefox下上传文件出现http error 302</p>
-
-    <blockquote>
-      <p>网上大部分的情况是firefox和chrome同时出现此问题，基本都是说session的原因，但我的环境chrome却没有出问题。我的解决方案比较简单，就是对上传文件的后台action取消授权检查。应该还是很session有关，更好的解决方案可查询谷歌。</p>
-    </blockquote>
-  </li>
-</ul>
-
-<h3 id="entity-framework-sqlite">Entity Framework sqlite数据源适配问题</h3>
-<p>主要是开始无法新建sqlite数据源，ef的设计器总是报错，无法通过数据库更新实体等。另外sqlite中文模糊查询问题。</p>
-
-<ul>
-  <li>
-    <p>设计器报错问题</p>
-
-    <blockquote>
-      <p>需要到sqlite官网下载合适的数据源驱动程序
-<a href="http://system.data.sqlite.org/index.html/doc/trunk/www/downloads.wiki">http://system.data.sqlite.org/index.html/doc/trunk/www/downloads.wiki</a></p>
-    </blockquote>
-  </li>
-  <li>
-    <p>sqlite中文字符串模糊查询问题</p>
-
-    <blockquote>
-      <p>原来使用的方式：dbcontext.Post.Where(t=&gt;t.Name.Contains(s))，对应的sql语句为charindex，改为：list = context.Database.SqlQuery<product>(string.Format("select * from product where name like '%{0}%'",arcTitle)).AsQueryable();</product></p>
-    </blockquote>
-  </li>
-</ul>
+<div class="page-wrapper">
+    <section class="head" id="violet-head">
+        <header class="header" id="violet-header">
+            <h1 class="logo"><a href="http://localhost:4000">Qiuliang's Site</a></h1>
+            <h2 class="subtitle">君子乐胥，受天之佑</h2>
+        </header>
+        <nav class="nav" id="violet-nav">
+            <ul class="nav-list">
 
 
-        </div>
-    </div>
-</article>
-<nav class="pagination fn-clear" id="violet-paging">
-    <div class="pagination-list">
-        
-        <a class="prev" href="/ruby/2013/12/13/advance-ruby-string-tips.html" rel="bookmark"><i class="fa fa-chevron-circle-left"></i>【Ruby on Rails】Advanced Ruby String...</a>
-        
-        
-        <a class="next" href="/ruby/2013/12/13/ruby-change-db-to-mysql.html" rel="bookmark">【Ruby on Rails】切换数据库到MySQL<i class="fa fa-chevron-circle-right"></i></a>
-        
-    </div>
-</nav>
-<div class="comment">
-    
-        <div class="comment-cnt">
-            <div id="disqus_thread"></div>
-        </div>
-    
-</div>
 
-        </section>
-        <footer class="foot" id="violet-foot">
-            <div class="footer fn-clear">
-                <!--<h1 class="logo">Qiuliang's Site</h1>-->
+                <li class="nav-item ">
+                    <a href="/index.html">
+                        首页
+                    </a>
+
+                </li>
+
+
+
+                <li class="nav-item ">
+                    <a href="/archives.html">
+                        文章归档
+                    </a>
+
+                </li>
+
+
+
+                <li class="nav-item ">
+                    <a href="/contact.html">
+                        联系我
+                    </a>
+
+                </li>
+
+
+
+                <li class="nav-item ">
+                    <a href="https://github.com/qiuliang/qiuliang.github.io">
+                        View on github
+                    </a>
+
+                </li>
+
+            </ul>
+        </nav>
+    </section>
+    <section class="main" id="violet-main">
+        <article class="main-article main-article-page">
+            <div class="violet-title">
+                <h3 class="violet-title-item">ASP.NET MVC 4 小项目开发总结</h3>
             </div>
-            <div class="copyright">
-                <div class="copyright-cnt fn-clear">
-                    
-                    <a class="follow" href="https://www.facebook.com/liang.qiu.1" target="_blank"><i class="fa fa-facebook"></i></a>
-                    
-                    <a class="follow" href="http://github.com/qiuliang" target="_blank"><i class="fa fa-github"></i></a>
-                    
-                    <a class="follow" href="http://www.zhanxin.info" target="_blank"><i class="fa fa-twitter"></i></a>
-                    
-                    <a class="follow" href="http://www.zhanxin.info" target="_blank"><i class="fa fa-rss"></i></a>
-                    
-                    <p class="text">© Powered by <a href="http://jekyllrb.com/">Jekyll</a>. Theme : <a href="http://www.zhanxin.info">Violet</a></p>
+            <div class="violet-post">
+                <p class="main-article-meta"><time pubdate="">2013-12-13</time></p>
+                <div class="main-article-contant">
+                    <p>项目很小，就是一个企业站的前后台，主要包括新闻模块、产品模块、视频模块、留言。没有什么技术上的难点，大部分就是CRUD操作。开始之前评估开发时间为4天，实际coding时间为3天，debug时间为2天，关于debug时间较长的问题，后面有较为详细的分析。</p>
+
+                    <h2 id="section">所用技术和工具</h2>
+
+                    <ul>
+                        <li>Visual Studio 2012</li>
+                        <li>ASP.NET MVC 4</li>
+                        <li>Entify Framework 5</li>
+                        <li>Sqlite</li>
+                        <li>Uploadify</li>
+                    </ul>
+
+                    <h2 id="aspnet-mvc-4">关于ASP.NET MVC 4</h2>
+
+                    <p>相比MVC 3，个人感觉并没有太大的变化，也许是一些新特性没有用到。最大的感受是开始支持HTML5。</p>
+
+                    <h2 id="debug">debug花费时间分析</h2>
+
+                    <p>除开没有后台页面等其他因素，自身原因分析如下：</p>
+
+                    <h3 id="section-1">拿到需求后没有进行较为详细的确认</h3>
+
+                    <p>虽然项目需求简单，但有些地方开始时疏于沟通，最终所省掉的时间还是用在了debug上，甚至更多。</p>
+
+                    <h3 id="section-2">浏览器兼容性问题</h3>
+
+                    <p>仅在开发阶段使用chrome浏览器，ie系也仅测试ie10，其余未考虑，后续在浏览器兼容性方面的调试花费了较多的时间。</p>
+
+                    <p>例如如下的问题：</p>
+
+                    <ul>
+                        <li>
+                            <p>ie7下jquery.validate报错</p>
+
+                            <blockquote>
+                                <p>将<code>this.attr("novalidate", "novalidate");</code> 修改为：
+                                    <code>if (typeof (Worker) !== "undefined") { this.attr('novalidate', 'novalidate'); }</code></p>
+                            </blockquote>
+                        </li>
+                        <li>
+                            <p>ie7下ckeditor的dialog加载iframe窗口高度不正常问题</p>
+
+                            <blockquote>
+                                <p>尝试了很多网上的解决方案，均不管用，后来使用了一个非常规手段，就是给浏览器加上强制使用ie8模式的meta信息</p>
+                            </blockquote>
+                        </li>
+                        <li>
+                            <p>ie8下jquery.validate不起作用</p>
+
+                            <blockquote>
+                                <p>版本匹配问题：经测试：jquery-1.8.2 with jquery.validate-1.9正常</p>
+                            </blockquote>
+                        </li>
+                    </ul>
+
+                    <h3 id="uploadify">uploadify控件使用不是很熟练</h3>
+
+                    <p>很多api需要现查官方文档，而且官方站点还需翻墙。同时在集成uploadify到ckeditor里面的时候，也花费了较多的时间，主要是用在查官方文档上面。这块写了较多的js代码，在后续浏览器兼容性方面调试也比较麻烦。</p>
+
+                    <ul>
+                        <li>
+                            <p>firefox下上传文件出现http error 302</p>
+
+                            <blockquote>
+                                <p>网上大部分的情况是firefox和chrome同时出现此问题，基本都是说session的原因，但我的环境chrome却没有出问题。我的解决方案比较简单，就是对上传文件的后台action取消授权检查。应该还是很session有关，更好的解决方案可查询谷歌。</p>
+                            </blockquote>
+                        </li>
+                    </ul>
+
+                    <h3 id="entity-framework-sqlite">Entity Framework sqlite数据源适配问题</h3>
+                    <p>主要是开始无法新建sqlite数据源，ef的设计器总是报错，无法通过数据库更新实体等。另外sqlite中文模糊查询问题。</p>
+
+                    <ul>
+                        <li>
+                            <p>设计器报错问题</p>
+
+                            <blockquote>
+                                <p>需要到sqlite官网下载合适的数据源驱动程序
+                                    <a href="http://system.data.sqlite.org/index.html/doc/trunk/www/downloads.wiki">http://system.data.sqlite.org/index.html/doc/trunk/www/downloads.wiki</a></p>
+                            </blockquote>
+                        </li>
+                        <li>
+                            <p>sqlite中文字符串模糊查询问题</p>
+
+                            <blockquote>
+                                <p>原来使用的方式：dbcontext.Post.Where(t=&gt;t.Name.Contains(s))，对应的sql语句为charindex，改为：list = context.Database.SqlQuery<product>(string.Format("select * from product where name like '%{0}%'",arcTitle)).AsQueryable();</product></p>
+                            </blockquote>
+                        </li>
+                    </ul>
+
+
                 </div>
             </div>
-        </footer>
-    </div>
+        </article>
+        <nav class="pagination fn-clear" id="violet-paging">
+            <div class="pagination-list">
 
-    <script type="text/javascript" src="http://localhost:4000/themes/violet/js/jquery-1.8.3.js"></script>
-    <script type="text/javascript" src="http://localhost:4000/themes/violet/js/jquery-scrollTo.js"></script>
-    <script type="text/javascript" src="http://localhost:4000/themes/violet/js/common.js"></script>
-    <script type="text/javascript">
-        var headImgArr = [];
-        
-            headImgArr.push("/themes/violet/images/hdbg01.jpg");
-        
-            headImgArr.push("/themes/violet/images/hdbg02.jpg");
-        
-            headImgArr.push("/themes/violet/images/hdbg03.jpg");
-        
-            headImgArr.push("/themes/violet/images/hdbg04.jpg");
-        
-        if(headImgArr.length <= 0) {
-            headImgArr = ["/themes/violet/images/hdbg03.jpg"];
-            var item = 0;
-        } else {
-            var item = Math.floor(Math.random() * (headImgArr.length));
-        }
-        $("#violet-head").css({
-            "background-image": "url(" + headImgArr[item] + ")"
-        });
-    </script>
-    
-        
-        <script type="text/javascript">
-            //disqus
-            var disqus_shortname = 'qiuliang';
-            (function() {
-                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-                dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
-                (document.getElementsByTagName('head')[0] ||
-                    document.getElementsByTagName('body')[0]).appendChild(dsq);
-            })();
-        </script>
-        
-    
+                <a class="prev" href="/ruby/2013/12/13/advance-ruby-string-tips.html" rel="bookmark"><i class="fa fa-chevron-circle-left"></i>【Ruby on Rails】Advanced Ruby String...</a>
+
+
+                <a class="next" href="/ruby/2013/12/13/ruby-change-db-to-mysql.html" rel="bookmark">【Ruby on Rails】切换数据库到MySQL<i class="fa fa-chevron-circle-right"></i></a>
+
+            </div>
+        </nav>
+        <div class="comment">
+
+            <div class="comment-cnt">
+                <div id="disqus_thread"></div>
+            </div>
+
+        </div>
+
+    </section>
+    <footer class="foot" id="violet-foot">
+        <div class="footer fn-clear">
+            <!--<h1 class="logo">Qiuliang's Site</h1>-->
+        </div>
+        <div class="copyright">
+            <div class="copyright-cnt fn-clear">
+
+                <a class="follow" href="https://www.facebook.com/liang.qiu.1" target="_blank"><i class="fa fa-facebook"></i></a>
+
+                <a class="follow" href="http://github.com/qiuliang" target="_blank"><i class="fa fa-github"></i></a>
+
+                <a class="follow" href="http://www.zhanxin.info" target="_blank"><i class="fa fa-twitter"></i></a>
+
+                <a class="follow" href="http://www.zhanxin.info" target="_blank"><i class="fa fa-rss"></i></a>
+
+                <p class="text">© Powered by <a href="http://jekyllrb.com/">Jekyll</a>. Theme : <a href="http://www.zhanxin.info">Violet</a></p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<script type="text/javascript" src="http://localhost:4000/themes/violet/js/jquery-1.8.3.js"></script>
+<script type="text/javascript" src="http://localhost:4000/themes/violet/js/jquery-scrollTo.js"></script>
+<script type="text/javascript" src="http://localhost:4000/themes/violet/js/common.js"></script>
+<script type="text/javascript">
+    var headImgArr = [];
+
+    headImgArr.push("/themes/violet/images/hdbg01.jpg");
+
+    headImgArr.push("/themes/violet/images/hdbg02.jpg");
+
+    headImgArr.push("/themes/violet/images/hdbg03.jpg");
+
+    headImgArr.push("/themes/violet/images/hdbg04.jpg");
+
+    if(headImgArr.length <= 0) {
+        headImgArr = ["/themes/violet/images/hdbg03.jpg"];
+        var item = 0;
+    } else {
+        var item = Math.floor(Math.random() * (headImgArr.length));
+    }
+    $("#violet-head").css({
+        "background-image": "url(" + headImgArr[item] + ")"
+    });
+</script>
+
+
+<script type="text/javascript">
+    //disqus
+    var disqus_shortname = 'qiuliang';
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] ||
+                document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+
+
 </body>
 </html>
