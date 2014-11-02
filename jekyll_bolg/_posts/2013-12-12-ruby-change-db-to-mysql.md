@@ -4,6 +4,7 @@ title:  "【Ruby on Rails】切换数据库到MySQL"
 date:   2013-12-12 18:24:52
 categories: ruby
 tags: ruby
+excerpt : "根据官方指导手册，建立的rails程序默认使用SQLite3作为数据源，接下来的内容描述了如何将数据源改变为MySQL。"
 ---
 
 

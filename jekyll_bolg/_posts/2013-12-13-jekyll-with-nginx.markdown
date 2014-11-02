@@ -3,12 +3,12 @@ layout: post
 title:  "使用Nginx结合Jekyll搭建静态博客"
 date:   2013-12-13 18:24:52
 categories: jekyll
+excerpt : "简单介绍一下Jekyll，是一个采用Ruby开发的一个静态博客引擎，非常的轻量级和简洁，原生支持markdown语法，个人感觉也适用于wiki类应用。配合disquz插件或国内的友言等，也可实现评论功能。"
 ---
-
 
 简单介绍一下Jekyll，是一个采用Ruby开发的一个静态博客引擎，非常的轻量级和简洁，原生支持markdown语法，个人感觉也适用于wiki类应用。配合disquz插件或国内的友言等，也可实现评论功能。
 
-## **环境准备**
+##环境准备
 
 - 单独的服务器或虚拟机或vps
 - CentOS

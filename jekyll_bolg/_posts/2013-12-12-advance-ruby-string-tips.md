@@ -4,6 +4,7 @@ title:  "【Ruby on Rails】Advanced Ruby String Tips"
 date:   2013-12-12 18:24:52
 categories: ruby
 tags: ruby
+excerpt : "`ord`将字符转换为ASCII编码"
 ---
 
 

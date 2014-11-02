@@ -4,6 +4,7 @@ title:  "Spring MVC + Mybatis + MySQL CRUD Demo"
 date:   2014-7-4
 categories: java
 tags: java spring mybatis
+excerpt : "本文档结合`Spring MVC`、`Mybatis`、`MySQL`，说明如何实现一个简单的数据库单表CRUD操作。开发工具使用集成了spring mvc的eclipse（Spring Tool Suite，简称STS）。"
 ---
 
 

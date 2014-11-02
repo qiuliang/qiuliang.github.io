@@ -4,6 +4,7 @@ title:  "【Ruby on Rails】学习使用generator"
 date:   2013-12-12 18:24:52
 categories: ruby
 tags: ruby
+excerpt : "scaffold基本使用命令，rails generate scaffold Post id:integer title:string"
 ---
 
 ## scaffold基本使用命令
