@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<articles xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+<article>
+	<title>Spring MVC + Mybatis + MySQL CRUD Demo</title>
+	<url>http://localhost:4000/java/2014/07/04/Spring%20MVC-Mybatis-MySQL-CRUD-Demo.html</url>
+	<date>2014-07-04</date>
+</article>
+
+<article>
+	<title>使用Nginx结合Jekyll搭建静态博客</title>
+	<url>http://localhost:4000/jekyll/2013/12/14/jekyll-with-nginx.html</url>
+	<date>2013-12-14</date>
+</article>
+
+<article>
+	<title>【Ruby on Rails】学习使用generator</title>
+	<url>http://localhost:4000/ruby/2013/12/13/ruby-on-rails-scaffold.html</url>
+	<date>2013-12-13</date>
+</article>
+
+<article>
+	<title>【Ruby on Rails】切换数据库到MySQL</title>
+	<url>http://localhost:4000/ruby/2013/12/13/ruby-change-db-to-mysql.html</url>
+	<date>2013-12-13</date>
+</article>
+
+<article>
+	<title>ASP.NET MVC 4 小项目开发总结</title>
+	<url>http://localhost:4000/asp.net/2013/12/13/aspnet-mvc4-project-summary.html</url>
+	<date>2013-12-13</date>
+</article>
+
+<article>
+	<title>【Ruby on Rails】Advanced Ruby String Tips</title>
+	<url>http://localhost:4000/ruby/2013/12/13/advance-ruby-string-tips.html</url>
+	<date>2013-12-13</date>
+</article>
+
+</articles>
