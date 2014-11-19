@@ -2,6 +2,24 @@
 <articles xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <article>
+	<title>文件存储系统映射模块原理解析</title>
+	<url>http://www.qiuliang.net/fastdfs/2014/11/19/file-storage-based-on-fastdfs.html</url>
+	<date>2014-11-19</date>
+</article>
+
+<article>
+	<title>git常用命令整理（一）</title>
+	<url>http://www.qiuliang.net/git/2014/11/04/git-used-to-command-1.html</url>
+	<date>2014-11-04</date>
+</article>
+
+<article>
+	<title>碎片时间</title>
+	<url>http://www.qiuliang.net/mind/2014/11/04/how-to-use-fragmentary-time.html</url>
+	<date>2014-11-04</date>
+</article>
+
+<article>
 	<title>Spring MVC + Mybatis + MySQL CRUD Demo</title>
 	<url>http://www.qiuliang.net/java/2014/07/04/Spring%20MVC-Mybatis-MySQL-CRUD-Demo.html</url>
 	<date>2014-07-04</date>

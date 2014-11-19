@@ -4,13 +4,377 @@
    <title>Qiuliang's Site</title>
    <link href="http://www.qiuliang.net/atom.xml" rel="self" type="application/atom+xml"/>
    <link href="http://www.qiuliang.net" rel="alternate" type="text/html" />
-   <updated>2014-11-03T18:33:39+08:00</updated>
+   <updated>2014-11-19T10:47:04+08:00</updated>
    <id>http://www.qiuliang.net</id>
    <author>
      <name></name>
      <email></email>
    </author>
 
+   
+   <entry>
+     <title>文件存储系统映射模块原理解析</title>
+     <link href="http://www.qiuliang.net/fastdfs/2014/11/19/file-storage-based-on-fastdfs.html"/>
+     <updated>2014-11-19T00:00:00+08:00</updated>
+     <id>http://www.qiuliang.net/fastdfs/2014/11/19/file-storage-based-on-fastdfs</id>
+     <content type="html">&lt;h2 id=&quot;section&quot;&gt;系统简介&lt;/h2&gt;
+&lt;p&gt;近期我们开发了一套基于&lt;code&gt;Fastdfs&lt;/code&gt;的分布式文件存储发布系统，用于解决如下几个问题：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;大量静态文件的存储和访问&lt;/li&gt;
+  &lt;li&gt;停用原有的FTP管理模式&lt;/li&gt;
+  &lt;li&gt;解决NAS存储单点的问题&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;在项目之初，为了实现满足这些需求的一套系统，查证了一些相关案例和开源组件，本着简单可依赖的原则，最后确定为采用&lt;code&gt;Fastdfs&lt;/code&gt;作为存储平台，之所以是&lt;code&gt;Fastdfs&lt;/code&gt;，也是觉得一是公司的某些业务线已经在使用，其可用性和稳定性已得到一定检验；二是&lt;code&gt;Fastdfs&lt;/code&gt;作为国内的一款开源软件，资料较多且使用成本较低。&lt;/p&gt;
+
+&lt;h3 id=&quot;section-1&quot;&gt;核心思路&lt;/h3&gt;
+
+&lt;p&gt;因底层存储系统采用了开源实现，那么我们的核心就是做一个简单易用的文件管理端和发布站点，使用过&lt;code&gt;Fastdfs&lt;/code&gt;的同学应该知道，通过其client api上传文件后，得到的是一个通过哈希散列计算后的文件名，无法使用原始文件名进行访问，如果是一般的文件存储（例如一些广告背景图等），可能问题也不大，但如果是发布一个促销专题页面，那么这个工作将变得极其困难，因为一个促销专题页，往往同时包含所依赖的样式文件、背景图片、脚本等，页面html中一般是依赖的相对路径，所以如果直接上传到&lt;code&gt;Fastdfs&lt;/code&gt;则文件路径依赖的问题无法解决，或者说要很麻烦的方式解决。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;因此，我们引入了映射模块，用来处理逻辑地址和物理地址的对应关系。在本文中也将主要针对映射模块做一个比较详细的介绍和分析。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;section-2&quot;&gt;主要具备如下功能和特点&lt;/h3&gt;
+
+&lt;p&gt;该系统目前已经上线，主要具备如下功能和特点：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;基于目录层级的文件、权限管理方案&lt;/li&gt;
+  &lt;li&gt;文件发布支持多域名&lt;/li&gt;
+  &lt;li&gt;分布式系统保证高可用和稳定性，易于横向扩展&lt;/li&gt;
+  &lt;li&gt;映射模块基于&lt;code&gt;Nginx&lt;/code&gt;内部原理实现&lt;/li&gt;
+  &lt;li&gt;支持文件版本管理，支持回滚操作&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;该系统包含三个模块：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;管理模块&lt;/p&gt;
+
+    &lt;pre&gt;&lt;code&gt;  一套基于HTML的UI界面，可进行系统管理、文件管理等功能。
+&lt;/code&gt;&lt;/pre&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;映射模块&lt;/p&gt;
+
+    &lt;pre&gt;&lt;code&gt;  负责解析用户请求，并利用Nginx内部特性来返回数据。
+&lt;/code&gt;&lt;/pre&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;存储模块&lt;/p&gt;
+
+    &lt;pre&gt;&lt;code&gt;  完全基于Fastdfs实现，易于扩展，要求安装fastdfs-nginx-module。
+&lt;/code&gt;&lt;/pre&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;section-3&quot;&gt;映射模块介绍&lt;/h2&gt;
+
+&lt;p&gt;映射模块就是一个部署于&lt;code&gt;Tomcat&lt;/code&gt;之上的web站点，其职责就是接受前端Nginx转发过来的请求，把一个URL地址转换为&lt;code&gt;fastdfs&lt;/code&gt;存储的物理地址，并返回给&lt;code&gt;Nginx&lt;/code&gt;，&lt;code&gt;Nginx&lt;/code&gt;拿到物理地址后读取文件并返回给用户。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;code&gt;Nginx&lt;/code&gt;作为高性能的反向代理服务器，在本模块中起到的作用不仅仅是负载均衡，还利用到了Nginx的一个内部特性&lt;code&gt;sendfile&lt;/code&gt;，利用该特性，&lt;code&gt;Tomcat&lt;/code&gt;作为映射模块仅需要处理映射关系，而不用处理文件IO操作，而我们知道，应用程序服务器上的性能瓶颈往往是IO操作，通过部署这样的系统结构，得以提高系统的整体性能。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;section-4&quot;&gt;为什么需要加入映射模块&lt;/h3&gt;
+
+&lt;p&gt;既然底层的存储是基于&lt;code&gt;Fastdfs&lt;/code&gt;实现，那么利用&lt;code&gt;fastdfs-nginx-module&lt;/code&gt;，完全可以通过文件的物理地址进行访问，只需要做一个GUI来进行文件的管理即可，这也是很多存储系统的实现方式。现加入映射模块，除了解决上文提到的发布促销页面的问题，其意义还在于：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;文件的URL地址由复杂变为简单可理解，易于阅读且对SEO友好。&lt;/li&gt;
+  &lt;li&gt;文件的组织方式变得有序、可管理。&lt;/li&gt;
+  &lt;li&gt;基于目录树的结构，易于权限的控制和管理。&lt;/li&gt;
+  &lt;li&gt;发布站点多域名支持、性能扩展更为容易。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;section-5&quot;&gt;映射模块工作流程&lt;/h3&gt;
+
+&lt;p&gt;完整的映射模块包含如下几个部分：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Nginx（同时起到负载均衡和读取文件的作用）&lt;/li&gt;
+  &lt;li&gt;Tomcat 站点（处理url和物理地址对应关系的程序逻辑）&lt;/li&gt;
+  &lt;li&gt;MySQL（逻辑url和物理url mapping关系存储）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;现以用户请求一个文件为例，来说明映射模块的工作流程。例如某用户访问地址：
+&lt;code&gt;http://promotion.xxx.com/hotel/2014/1111.html&lt;/code&gt;。&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Nginx作为负载均衡，接受用户请求，并将请求转发到某个Tomcat实例上。&lt;/li&gt;
+  &lt;li&gt;Tomcat 通过查询本地缓存，得到物理地址，并将物理地址写入Response Header中，其key为：&lt;code&gt;X-Accel-Redirect&lt;/code&gt;。&lt;/li&gt;
+  &lt;li&gt;Nginx获取到Response Header中包含&lt;code&gt;X-Accel-Redirect&lt;/code&gt;，读取其中的value，并再次将请求分发到&lt;code&gt;fastdfs-nginx-module&lt;/code&gt;上。&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;fastdfs-nginx-module&lt;/code&gt;返回数据给Nginx，用户接收到文件流，整体流程结束。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&quot;section-6&quot;&gt;流程图&lt;/h4&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/efc_mapping_process.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;section-7&quot;&gt;部署说明和关键配置&lt;/h3&gt;
+
+&lt;p&gt;要实现如上的系统结构，在系统部署和配置上需要满足如下的条件：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Nginx作为前端负载均衡&lt;/li&gt;
+  &lt;li&gt;Tomcat（或其他任意后端Server）部署映射处理程序&lt;/li&gt;
+  &lt;li&gt;Fastdfs Tracker和Storage服务器集群&lt;/li&gt;
+  &lt;li&gt;Nginx转发规则需要配置两个，一是fastdfs group路径，二是除此之外的所有路径。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Nginx转发规则配置如下：&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;转发规则1&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-nginx&quot; data-lang=&quot;nginx&quot;&gt;&lt;span class=&quot;k&quot;&gt;location&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/group1/&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;expires&lt;/span&gt;      &lt;span class=&quot;s&quot;&gt;-1s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;proxy_pass&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;http://fastdfs.server&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;#break;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;转发规则2&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-nginx&quot; data-lang=&quot;nginx&quot;&gt;&lt;span class=&quot;k&quot;&gt;location&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;expires&lt;/span&gt;      &lt;span class=&quot;s&quot;&gt;-1s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;proxy_set_header&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;Host&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;proxy_pass&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;http://efcproxy.server&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;#break;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;upstream配置&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-nginx&quot; data-lang=&quot;nginx&quot;&gt;&lt;span class=&quot;k&quot;&gt;upstream&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;efcproxy.server&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;kn&quot;&gt;server&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;127.0.0.1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8080&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#映射处理程序服务器地址&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;upstream&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;fastdfs.server&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;kn&quot;&gt;server&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;192.168.14.153&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8080&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#fastdfs storage地址&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;还是以上文中的请求示例：&lt;/p&gt;
+
+&lt;p&gt;路径&lt;code&gt;/hotel/2014/1111.html&lt;/code&gt;会首先被规则2转发到映射处理程序，然后写入Response Header后，&lt;code&gt;X-Accel-Redirect&lt;/code&gt;的value为：&lt;code&gt;/group1/M00/AA/BB/asldkjfj89oip9.html&lt;/code&gt;，Nginx读取到该值，并由规则1继续完成处理。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;X-Accel-Redirect是在Nginx内部处理，所以在用户端浏览器是看不到该header，不会暴露出文件的真实地址，浏览器也不会做302跳转，是在一次请求中完成。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;section-8&quot;&gt;总结&lt;/h2&gt;
+
+&lt;p&gt;通过上述系统实现，映射模块具备如下的特点：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;结构简单、轻量级&lt;/li&gt;
+  &lt;li&gt;拥有基本上接近于静态文件服务器的性能&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;Tomcat&lt;/code&gt;无IO压力&lt;/li&gt;
+  &lt;li&gt;易于部署和扩展&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;section-9&quot;&gt;文件存储系统整体结构图&lt;/h3&gt;
+
+&lt;p&gt;最后附上本系统的整体结构图，方便做更全面的了解。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/efc_system_arch.png&quot; alt=&quot;整体结构图&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;section-10&quot;&gt;参考&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://wiki.nginx.org/XSendfile&quot;&gt;Nginx-X-Accel-Rediret&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://code.google.com/p/fastdfs-nginx-module/&quot;&gt;Fastdfs-nginx-module&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</content>
+   </entry>
+   
+   <entry>
+     <title>git常用命令整理（一）</title>
+     <link href="http://www.qiuliang.net/git/2014/11/04/git-used-to-command-1.html"/>
+     <updated>2014-11-04T23:12:22+08:00</updated>
+     <id>http://www.qiuliang.net/git/2014/11/04/git-used-to-command-1</id>
+     <content type="html">&lt;h4 id=&quot;section&quot;&gt;基本操作&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;提交所有文件&lt;/p&gt;
+
+    &lt;p&gt;&lt;code&gt;bash
+  git add -A
+ &lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;如何增加排除列表？&lt;/p&gt;
+
+    &lt;p&gt;在git目录下，新增.gitingore文件，输入要排除的文件或匹配规则，然后提交到仓库&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;如何忽略已经跟踪的代码&lt;/p&gt;
+
+    &lt;p&gt;对于untrack的文件，我们可以创建.gitignore文件。
+  对于已经track的文件，我们可以这样做：&lt;/p&gt;
+
+    &lt;p&gt;&lt;code&gt;bash
+  git update-index --assume-unchanged &amp;lt;files&amp;gt;
+ &lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;这样，即使已经更改了文件，用git status也不会看见文件已经更改。
+  但在使用时需要小心，取消这种设定可以使用：&lt;/p&gt;
+
+    &lt;p&gt;&lt;code&gt;bash
+  git update-index --no-assume-unchanged &amp;lt;files&amp;gt;
+ &lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;查看本地分支&lt;/p&gt;
+
+    &lt;p&gt;&lt;code&gt;bash
+  git branch #查看本地分支
+  git branch -r #查看远程分支
+ &lt;/code&gt;&lt;/p&gt;
+
+    &lt;p&gt;查看远程分支将显示：&lt;/p&gt;
+
+    &lt;p&gt;origin/master
+  origin/develop
+  origin是远程标记名称，可自定义。但使用git clone将默认使用origin名称。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;创建分支&lt;/p&gt;
+
+    &lt;p&gt;&lt;code&gt;bash
+  git checkout -b source master
+ &lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;提交分支到远程&lt;/p&gt;
+
+    &lt;p&gt;&lt;code&gt;bash
+  git push origin source
+ 	&lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;合并分支到当前分支&lt;/p&gt;
+
+    &lt;p&gt;&lt;code&gt;bash
+  git checkout develop
+  git merge master #从master合并改动到develop
+ &lt;/code&gt;&lt;/p&gt;
+
+    &lt;blockquote&gt;
+      &lt;p&gt;建议对远端跟踪分支能做的操作： 
+ *  使用git fetch 更新远端跟踪分支 
+ *  合并远端跟踪分支到当前分支 
+ *  根据远端跟踪分支创建本地分支&lt;/p&gt;
+    &lt;/blockquote&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;基于远程跟踪分支创建本地分支：&lt;/p&gt;
+
+    &lt;p&gt;&lt;code&gt;bash
+  git checkout -track -b your-local-branch-name origin/develop
+ &lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;从远端更新本地，采用git fetch&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;git fetch &lt;span class=&quot;c&quot;&gt;#从远端下载内容到本地&lt;/span&gt;
+git checkout your-local-branch
+git merge origin/remote-branch&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;从本地更新远端&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;git checkout your-local-branch &lt;span class=&quot;c&quot;&gt;#1，切换到当前分支&lt;/span&gt;
+git commit -a -m ‘commit’ &lt;span class=&quot;c&quot;&gt;#2，提交改动到本地仓库&lt;/span&gt;
+git push origin remote-branch &lt;span class=&quot;c&quot;&gt;#3，更新远端&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;gt;如果这个分支在远程仓库里对应不同的名称（如:experiment-by-bob）,你应该这么做：  git push origin experimental:experiment-by-bob
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;切换分支前，需要将当前分支的改动提交到本地。&lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;如果你只是想看看本地分支和远程分支的差异，你可以使用下面的命令：&lt;/p&gt;
+
+    &lt;p&gt;&lt;code&gt;bash
+  git diff master origin/master
+ &lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;查看最近几次commit的信息
+  $ git log&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;回退到某次commit，或者在某次commit之间跳转&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;git reset —hard b0a21b2a7096f12c49b394abfb338fbc5da8093b&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;将回退的代码提交到远程&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;git push -u develop origin -f&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;tag&quot;&gt;tag相关&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;打tag&lt;/p&gt;
+
+    &lt;p&gt;&lt;code&gt;bash
+  git tag -a 1.0 -m ‘first tag’
+ &lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;查看tag列表&lt;/p&gt;
+
+    &lt;p&gt;&lt;code&gt;bash
+  git tag 
+ &lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;查看某个tag信息&lt;/p&gt;
+
+    &lt;p&gt;&lt;code&gt;bash
+  git show 1.0
+ &lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+</content>
+   </entry>
+   
+   <entry>
+     <title>碎片时间</title>
+     <link href="http://www.qiuliang.net/mind/2014/11/04/how-to-use-fragmentary-time.html"/>
+     <updated>2014-11-04T06:52:52+08:00</updated>
+     <id>http://www.qiuliang.net/mind/2014/11/04/how-to-use-fragmentary-time</id>
+     <content type="html">&lt;p&gt;&lt;img src=&quot;/images/blog/20141103.jpeg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;总是觉得时间不够用？也许我们应该好好利用下碎片时间。&lt;/p&gt;
+
+&lt;p&gt;什么是碎片时间？&lt;/p&gt;
+
+&lt;p&gt;坐地铁、上厕所、等人、排队、睡觉前…因人而异。&lt;/p&gt;
+
+&lt;p&gt;碎片时间可以干什么？&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;豆瓣阅读、多看等阅读客户端上购买的电子书；&lt;/li&gt;
+  &lt;li&gt;微信订阅号里有价值的文章；&lt;/li&gt;
+  &lt;li&gt;整理自己近期的计划；&lt;/li&gt;
+  &lt;li&gt;打一些需要打的电话；&lt;/li&gt;
+  &lt;li&gt;理理购物清单，把一些必需品加到京东的购物车里；&lt;/li&gt;
+  &lt;li&gt;或者想想中午吃什么；&lt;/li&gt;
+  &lt;li&gt;…&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;哈，还是有不少事情可做，不是么&lt;/p&gt;
+
+</content>
+   </entry>
    
    <entry>
      <title>Spring MVC + Mybatis + MySQL CRUD Demo</title>

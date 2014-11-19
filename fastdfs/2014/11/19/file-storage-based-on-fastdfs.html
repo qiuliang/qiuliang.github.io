@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!--
+     **
+     * Author:         掌心
+     * Contact:        zhanxin.info@gmail.com
+     * Theme Name:     Violet ( Violet 主题代表着一种颜色，一种情感，还有一种美)
+     * Create Date:    2013.10
+     * Update:         2014.09
+     **
+    -->
+    <meta charset="utf-8" />
+    <title>
+        
+            文件存储系统映射模块原理解析
+                 
+    </title>
+    <meta name="generator" content="Jekyll" />
+    <meta name="author" content="" />
+    <meta name="description" content="近期我们开发了一套基于`Fastdfs`的分布式文件存储发布系统，用于解决如下几个问题：大量静态文件的存储和访问、停用原有的FTP管理模式、解决NAS存储单点的问题" />
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <!-- //页面样式 -->
+    <link rel="stylesheet" href="http://www.qiuliang.net/themes/violet/css/style.css" type="text/css" />
+    <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css" rel="stylesheet">
+    <!--<link href='http://fonts.googleapis.com/css?family=Spirax' rel='stylesheet' type='text/css'>-->
+    <link rel="shortcut icon" href="http://www.qiuliang.net/themes/violet/images/favicon.ico" type="image/x-icon" />
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body id="violet">
+    <div class="page-wrapper">
+        <section class="head" id="violet-head">
+            <header class="header" id="violet-header">
+                <h1 class="logo"><a href="http://www.qiuliang.net">Qiuliang's Site</a></h1>
+                <h2 class="subtitle">做一个独立思考和具备创新能力的人，打造谦逊和强大的内心</h2>
+            </header>
+            <nav class="nav" id="violet-nav">
+                <ul class="nav-list">
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="/index.html">
+                            首页
+                        </a>
+                        
+                    </li>
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="/archives.html">
+                            文章归档
+                        </a>
+                        
+                    </li>
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="/contact.html">
+                            联系我
+                        </a>
+                        
+                    </li>
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="https://github.com/qiuliang/qiuliang.github.io">
+                            View on github
+                        </a>
+                        
+                    </li>
+                    
+                </ul>
+            </nav>
+        </section>
+        <section class="main" id="violet-main">
+            <article class="main-article main-article-page">
+    <div class="violet-title">
+        <h3 class="violet-title-item">文件存储系统映射模块原理解析</h3>
+    </div>
+    <div class="violet-post">
+        <p class="main-article-meta"><time pubdate="">2014-11-19</time></p>
+        <div class="main-article-contant">
+            <h2 id="section">系统简介</h2>
+<p>近期我们开发了一套基于<code>Fastdfs</code>的分布式文件存储发布系统，用于解决如下几个问题：</p>
+
+<ul>
+  <li>大量静态文件的存储和访问</li>
+  <li>停用原有的FTP管理模式</li>
+  <li>解决NAS存储单点的问题</li>
+</ul>
+
+<p>在项目之初，为了实现满足这些需求的一套系统，查证了一些相关案例和开源组件，本着简单可依赖的原则，最后确定为采用<code>Fastdfs</code>作为存储平台，之所以是<code>Fastdfs</code>，也是觉得一是公司的某些业务线已经在使用，其可用性和稳定性已得到一定检验；二是<code>Fastdfs</code>作为国内的一款开源软件，资料较多且使用成本较低。</p>
+
+<h3 id="section-1">核心思路</h3>
+
+<p>因底层存储系统采用了开源实现，那么我们的核心就是做一个简单易用的文件管理端和发布站点，使用过<code>Fastdfs</code>的同学应该知道，通过其client api上传文件后，得到的是一个通过哈希散列计算后的文件名，无法使用原始文件名进行访问，如果是一般的文件存储（例如一些广告背景图等），可能问题也不大，但如果是发布一个促销专题页面，那么这个工作将变得极其困难，因为一个促销专题页，往往同时包含所依赖的样式文件、背景图片、脚本等，页面html中一般是依赖的相对路径，所以如果直接上传到<code>Fastdfs</code>则文件路径依赖的问题无法解决，或者说要很麻烦的方式解决。</p>
+
+<p><strong>因此，我们引入了映射模块，用来处理逻辑地址和物理地址的对应关系。在本文中也将主要针对映射模块做一个比较详细的介绍和分析。</strong></p>
+
+<h3 id="section-2">主要具备如下功能和特点</h3>
+
+<p>该系统目前已经上线，主要具备如下功能和特点：</p>
+
+<ul>
+  <li>基于目录层级的文件、权限管理方案</li>
+  <li>文件发布支持多域名</li>
+  <li>分布式系统保证高可用和稳定性，易于横向扩展</li>
+  <li>映射模块基于<code>Nginx</code>内部原理实现</li>
+  <li>支持文件版本管理，支持回滚操作</li>
+</ul>
+
+<p>该系统包含三个模块：</p>
+
+<ul>
+  <li>
+    <p>管理模块</p>
+
+    <pre><code>  一套基于HTML的UI界面，可进行系统管理、文件管理等功能。
+</code></pre>
+  </li>
+  <li>
+    <p>映射模块</p>
+
+    <pre><code>  负责解析用户请求，并利用Nginx内部特性来返回数据。
+</code></pre>
+  </li>
+  <li>
+    <p>存储模块</p>
+
+    <pre><code>  完全基于Fastdfs实现，易于扩展，要求安装fastdfs-nginx-module。
+</code></pre>
+  </li>
+</ul>
+
+<h2 id="section-3">映射模块介绍</h2>
+
+<p>映射模块就是一个部署于<code>Tomcat</code>之上的web站点，其职责就是接受前端Nginx转发过来的请求，把一个URL地址转换为<code>fastdfs</code>存储的物理地址，并返回给<code>Nginx</code>，<code>Nginx</code>拿到物理地址后读取文件并返回给用户。</p>
+
+<blockquote>
+  <p><code>Nginx</code>作为高性能的反向代理服务器，在本模块中起到的作用不仅仅是负载均衡，还利用到了Nginx的一个内部特性<code>sendfile</code>，利用该特性，<code>Tomcat</code>作为映射模块仅需要处理映射关系，而不用处理文件IO操作，而我们知道，应用程序服务器上的性能瓶颈往往是IO操作，通过部署这样的系统结构，得以提高系统的整体性能。</p>
+</blockquote>
+
+<h3 id="section-4">为什么需要加入映射模块</h3>
+
+<p>既然底层的存储是基于<code>Fastdfs</code>实现，那么利用<code>fastdfs-nginx-module</code>，完全可以通过文件的物理地址进行访问，只需要做一个GUI来进行文件的管理即可，这也是很多存储系统的实现方式。现加入映射模块，除了解决上文提到的发布促销页面的问题，其意义还在于：</p>
+
+<ul>
+  <li>文件的URL地址由复杂变为简单可理解，易于阅读且对SEO友好。</li>
+  <li>文件的组织方式变得有序、可管理。</li>
+  <li>基于目录树的结构，易于权限的控制和管理。</li>
+  <li>发布站点多域名支持、性能扩展更为容易。</li>
+</ul>
+
+<h3 id="section-5">映射模块工作流程</h3>
+
+<p>完整的映射模块包含如下几个部分：</p>
+
+<ul>
+  <li>Nginx（同时起到负载均衡和读取文件的作用）</li>
+  <li>Tomcat 站点（处理url和物理地址对应关系的程序逻辑）</li>
+  <li>MySQL（逻辑url和物理url mapping关系存储）</li>
+</ul>
+
+<p>现以用户请求一个文件为例，来说明映射模块的工作流程。例如某用户访问地址：
+<code>http://promotion.xxx.com/hotel/2014/1111.html</code>。</p>
+
+<ol>
+  <li>Nginx作为负载均衡，接受用户请求，并将请求转发到某个Tomcat实例上。</li>
+  <li>Tomcat 通过查询本地缓存，得到物理地址，并将物理地址写入Response Header中，其key为：<code>X-Accel-Redirect</code>。</li>
+  <li>Nginx获取到Response Header中包含<code>X-Accel-Redirect</code>，读取其中的value，并再次将请求分发到<code>fastdfs-nginx-module</code>上。</li>
+  <li><code>fastdfs-nginx-module</code>返回数据给Nginx，用户接收到文件流，整体流程结束。</li>
+</ol>
+
+<h4 id="section-6">流程图</h4>
+
+<p><img src="/images/blog/efc_mapping_process.png" alt="" /></p>
+
+<h3 id="section-7">部署说明和关键配置</h3>
+
+<p>要实现如上的系统结构，在系统部署和配置上需要满足如下的条件：</p>
+
+<ul>
+  <li>Nginx作为前端负载均衡</li>
+  <li>Tomcat（或其他任意后端Server）部署映射处理程序</li>
+  <li>Fastdfs Tracker和Storage服务器集群</li>
+  <li>Nginx转发规则需要配置两个，一是fastdfs group路径，二是除此之外的所有路径。</li>
+</ul>
+
+<p>Nginx转发规则配置如下：</p>
+
+<p><strong>转发规则1</strong></p>
+
+<div class="highlight"><pre><code class="language-nginx" data-lang="nginx"><span class="k">location</span> <span class="s">/group1/</span> <span class="p">{</span>
+    <span class="kn">expires</span>      <span class="s">-1s</span><span class="p">;</span>
+    <span class="kn">proxy_pass</span> <span class="s">http://fastdfs.server</span><span class="p">;</span>
+    <span class="c1">#break;</span>
+<span class="p">}</span></code></pre></div>
+
+<p><strong>转发规则2</strong></p>
+
+<div class="highlight"><pre><code class="language-nginx" data-lang="nginx"><span class="k">location</span> <span class="s">/</span> <span class="p">{</span>
+    <span class="kn">expires</span>      <span class="s">-1s</span><span class="p">;</span>
+    <span class="kn">proxy_set_header</span> <span class="s">Host</span> <span class="nv">$host</span><span class="p">;</span>
+    <span class="kn">proxy_pass</span> <span class="s">http://efcproxy.server</span><span class="p">;</span>
+    <span class="c1">#break;</span>
+<span class="p">}</span></code></pre></div>
+
+<p><strong>upstream配置</strong></p>
+
+<div class="highlight"><pre><code class="language-nginx" data-lang="nginx"><span class="k">upstream</span> <span class="s">efcproxy.server</span><span class="p">{</span>
+	<span class="kn">server</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">8080</span><span class="p">;</span> <span class="c1">#映射处理程序服务器地址</span>
+<span class="p">}</span>
+
+<span class="k">upstream</span> <span class="s">fastdfs.server</span><span class="p">{</span>
+	<span class="kn">server</span> <span class="n">192.168.14.153</span><span class="p">:</span><span class="mi">8080</span><span class="p">;</span> <span class="c1">#fastdfs storage地址</span>
+<span class="p">}</span></code></pre></div>
+
+<p>还是以上文中的请求示例：</p>
+
+<p>路径<code>/hotel/2014/1111.html</code>会首先被规则2转发到映射处理程序，然后写入Response Header后，<code>X-Accel-Redirect</code>的value为：<code>/group1/M00/AA/BB/asldkjfj89oip9.html</code>，Nginx读取到该值，并由规则1继续完成处理。</p>
+
+<blockquote>
+  <p>X-Accel-Redirect是在Nginx内部处理，所以在用户端浏览器是看不到该header，不会暴露出文件的真实地址，浏览器也不会做302跳转，是在一次请求中完成。</p>
+</blockquote>
+
+<h2 id="section-8">总结</h2>
+
+<p>通过上述系统实现，映射模块具备如下的特点：</p>
+
+<ul>
+  <li>结构简单、轻量级</li>
+  <li>拥有基本上接近于静态文件服务器的性能</li>
+  <li><code>Tomcat</code>无IO压力</li>
+  <li>易于部署和扩展</li>
+</ul>
+
+<h3 id="section-9">文件存储系统整体结构图</h3>
+
+<p>最后附上本系统的整体结构图，方便做更全面的了解。</p>
+
+<p><img src="/images/blog/efc_system_arch.png" alt="整体结构图" /></p>
+
+<h2 id="section-10">参考</h2>
+
+<ul>
+  <li><a href="http://wiki.nginx.org/XSendfile">Nginx-X-Accel-Rediret</a></li>
+  <li><a href="https://code.google.com/p/fastdfs-nginx-module/">Fastdfs-nginx-module</a></li>
+</ul>
+
+        </div>
+    </div>
+</article>
+<nav class="pagination fn-clear" id="violet-paging">
+    <div class="pagination-list">
+        
+        <a class="prev" href="/git/2014/11/04/git-used-to-command-1.html" rel="bookmark"><i class="fa fa-chevron-circle-left"></i>git常用命令整理（一）</a>
+        
+        
+    </div>
+</nav>
+<div class="comment">
+    
+        <div class="comment-cnt">
+            <div id="disqus_thread"></div>
+        </div>
+    
+</div>
+
+        </section>
+        <footer class="foot" id="violet-foot">
+            <div class="footer fn-clear">
+                <!--<h1 class="logo">Qiuliang's Site</h1>-->
+            </div>
+            <div class="copyright">
+                <div class="copyright-cnt fn-clear">
+                    
+                    <a class="follow" href="https://www.facebook.com/liang.qiu.1" target="_blank"><i class="fa fa-facebook"></i></a>
+                    
+                    <a class="follow" href="http://github.com/qiuliang" target="_blank"><i class="fa fa-github"></i></a>
+                    
+                    <a class="follow" href="http://www.zhanxin.info" target="_blank"><i class="fa fa-twitter"></i></a>
+                    
+                    <a class="follow" href="http://www.zhanxin.info" target="_blank"><i class="fa fa-rss"></i></a>
+                    
+                    <p class="text">© Powered by <a href="http://jekyllrb.com/">Jekyll</a>. Theme : <a href="http://www.zhanxin.info">Violet</a></p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/jquery-1.8.3.js"></script>
+    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/jquery-scrollTo.js"></script>
+    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/common.js"></script>
+    <script type="text/javascript">
+        var headImgArr = [];
+        
+            headImgArr.push("/themes/violet/images/hdbg01.jpg");
+        
+            headImgArr.push("/themes/violet/images/hdbg02.jpg");
+        
+            headImgArr.push("/themes/violet/images/hdbg03.jpg");
+        
+            headImgArr.push("/themes/violet/images/hdbg04.jpg");
+        
+        if(headImgArr.length <= 0) {
+            headImgArr = ["/themes/violet/images/hdbg03.jpg"];
+            var item = 0;
+        } else {
+            var item = Math.floor(Math.random() * (headImgArr.length));
+        }
+        $("#violet-head").css({
+            "background-image": "url(" + headImgArr[item] + ")"
+        });
+    </script>
+    
+        
+        <script type="text/javascript">
+            //disqus
+            var disqus_shortname = 'qiuliang';
+            (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] ||
+                    document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        
+    
+</body>
+</html>
