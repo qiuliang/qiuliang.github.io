@@ -37,6 +37,11 @@
     </url>
     
     <url>
+        <loc>http://www.qiuliang.net/life/2014/07/12/life-bali-trip.html</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
         <loc>http://www.qiuliang.net/java/2014/07/04/Spring%20MVC-Mybatis-MySQL-CRUD-Demo.html</loc>
         <priority>0.8</priority>
     </url>
