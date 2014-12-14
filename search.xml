@@ -2,6 +2,18 @@
 <articles xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <article>
+	<title>Markdown资源分享</title>
+	<url>http://www.qiuliang.net/tool/2014/11/27/markdown-resource-share.html</url>
+	<date>2014-11-27</date>
+</article>
+
+<article>
+	<title>天才们的思维盛筵，《上帝掷骰子吗--量子物理史话》</title>
+	<url>http://www.qiuliang.net/mind/2014/11/25/quantum-history.html</url>
+	<date>2014-11-25</date>
+</article>
+
+<article>
 	<title>文件存储系统映射模块原理解析</title>
 	<url>http://www.qiuliang.net/fastdfs/2014/11/19/file-storage-based-on-fastdfs.html</url>
 	<date>2014-11-19</date>
@@ -17,6 +29,12 @@
 	<title>碎片时间</title>
 	<url>http://www.qiuliang.net/mind/2014/11/04/how-to-use-fragmentary-time.html</url>
 	<date>2014-11-04</date>
+</article>
+
+<article>
+	<title>巴厘游记</title>
+	<url>http://www.qiuliang.net/life/2014/07/12/life-bali-trip.html</url>
+	<date>2014-07-12</date>
 </article>
 
 <article>
@@ -53,6 +71,12 @@
 	<title>【Ruby on Rails】Advanced Ruby String Tips</title>
 	<url>http://www.qiuliang.net/ruby/2013/12/13/advance-ruby-string-tips.html</url>
 	<date>2013-12-13</date>
+</article>
+
+<article>
+	<title>JavaScript中的this</title>
+	<url>http://www.qiuliang.net/javascript/2011/04/27/web-javascript-this.html</url>
+	<date>2011-04-27</date>
 </article>
 
 </articles>
