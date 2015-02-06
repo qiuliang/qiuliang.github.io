@@ -57,6 +57,11 @@
     </url>
     
     <url>
+        <loc>http://www.qiuliang.net/life/2014/03/02/life-summary-2013.html</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
         <loc>http://www.qiuliang.net/jekyll/2013/12/14/jekyll-with-nginx.html</loc>
         <priority>0.8</priority>
     </url>
@@ -78,6 +83,11 @@
     
     <url>
         <loc>http://www.qiuliang.net/ruby/2013/12/13/advance-ruby-string-tips.html</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>http://www.qiuliang.net/resume/2012/03/20/tech-tree.html</loc>
         <priority>0.8</priority>
     </url>
     
