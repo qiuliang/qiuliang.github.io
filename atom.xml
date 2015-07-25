@@ -4,13 +4,334 @@
    <title>Qiuliang's Site</title>
    <link href="http://www.qiuliang.net/atom.xml" rel="self" type="application/atom+xml"/>
    <link href="http://www.qiuliang.net" rel="alternate" type="text/html" />
-   <updated>2014-11-19T10:47:04+08:00</updated>
+   <updated>2015-07-25T13:14:48+08:00</updated>
    <id>http://www.qiuliang.net</id>
    <author>
      <name></name>
      <email></email>
    </author>
 
+   
+   <entry>
+     <title>git分支模型探讨</title>
+     <link href="http://www.qiuliang.net/tech/2015/07/25/git-branch-module.html"/>
+     <updated>2015-07-25T00:00:00+08:00</updated>
+     <id>http://www.qiuliang.net/tech/2015/07/25/git-branch-module</id>
+     <content type="html">&lt;p&gt;在阅读本文之前，假设你已经熟悉了git的常用命令，并且对git的分支模型有了基本的了解。&lt;/p&gt;
+
+&lt;p&gt;基础常用命令：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;git clone&lt;/li&gt;
+  &lt;li&gt;git add&lt;/li&gt;
+  &lt;li&gt;git commit &lt;/li&gt;
+  &lt;li&gt;git push&lt;/li&gt;
+  &lt;li&gt;git checkout&lt;/li&gt;
+  &lt;li&gt;git branch&lt;/li&gt;
+  &lt;li&gt;git fetch&lt;/li&gt;
+  &lt;li&gt;git merge&lt;/li&gt;
+  &lt;li&gt;git pull&lt;/li&gt;
+  &lt;li&gt;…&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;关于git分支模型，建议先阅读如下资料：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://www.ruanyifeng.com/blog/2012/07/git.html&quot;&gt;阮一峰整理的一个比较简单的git分支模型&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/xirong/my-git/blob/master/git-workflow-tutorial.md&quot;&gt;较为全面的几种git分支模型介绍&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;如下是网络上流传比较广泛的一个较为成熟的git分支示意图，基本能满足一般团队或个人进行代码管理。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/git/4.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;但每个team都有自己的需求和特点，生搬硬套不一定是合适的，和同事花1个多小时的时间讨论了一下，认为适合我们team的分支模型，大致如下。&lt;/p&gt;
+
+&lt;h2 id=&quot;section&quot;&gt;需求背景&lt;/h2&gt;
+
+&lt;p&gt;主要的需求如下：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;能支持日常迭代开发、紧急线上bug修复、多功能并行开发&lt;/li&gt;
+  &lt;li&gt;大概50人左右的团队，平日迭代项目较多，且周期短（1~2周一个迭代）&lt;/li&gt;
+  &lt;li&gt;能够通过tag重建整个系统&lt;/li&gt;
+  &lt;li&gt;支持code review&lt;/li&gt;
+  &lt;li&gt;所有上线的代码必须都是经过测试保证，且能自动同步到下一次的迭代中&lt;/li&gt;
+  &lt;li&gt;能和公司的项目管理/持续集成系统整合&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;分支模型说明&lt;/h2&gt;
+
+&lt;h3 id=&quot;section-2&quot;&gt;1. 日常迭代&lt;/h3&gt;
+
+&lt;h4 id=&quot;section-3&quot;&gt;1.1 流程说明&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;项目负责人先初始化仓库&lt;/li&gt;
+  &lt;li&gt;拉分支，同时包括develop和release分支&lt;/li&gt;
+  &lt;li&gt;develop分支开发完成后，提交pull requests到release分支&lt;/li&gt;
+  &lt;li&gt;进行code review，通过则merge到release分支&lt;/li&gt;
+  &lt;li&gt;在release分支上进行build和生成上线包&lt;/li&gt;
+  &lt;li&gt;部署上线包，上线完成后再merge到master，并打tag&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/git/1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;section-4&quot;&gt;1.2 后续迭代流程&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;从master上一次tag处拉出分支，同时包括dev和release&lt;/li&gt;
+  &lt;li&gt;在dev上进行开发和提交&lt;/li&gt;
+  &lt;li&gt;开发完成后，提交pull request到release分支&lt;/li&gt;
+  &lt;li&gt;进行code review，通过则merge到release分支&lt;/li&gt;
+  &lt;li&gt;在release分支上进行build和生成上线包&lt;/li&gt;
+  &lt;li&gt;部署上线包，上线完成后再merge到master，并打tag&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/git/2.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;section-5&quot;&gt;2. 在正常迭代同时有紧急线上问题修复&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;迭代分支同上&lt;/li&gt;
+  &lt;li&gt;同时再拉出hotfix开发和hotfix_release分支&lt;/li&gt;
+  &lt;li&gt;此时迭代和hotfix分支并行开发&lt;/li&gt;
+  &lt;li&gt;如果hotfix开发完成，并在hotfix_release分支进行提测并上线&lt;/li&gt;
+  &lt;li&gt;那么在迭代开发进行pull request前，应该要求先从master分支进行一次merge&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/git/3.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;section-6&quot;&gt;3. 多功能并行&lt;/h3&gt;
+
+&lt;p&gt;理论上和hotfix分支模型没有区别。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-7&quot;&gt;相关规范&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;开发人员不应该操作master分支&lt;/li&gt;
+  &lt;li&gt;由每个迭代或项目的负责人来进行code review和进行merge操作&lt;/li&gt;
+  &lt;li&gt;各开发分支和release分支均应该push到远程仓库&lt;/li&gt;
+  &lt;li&gt;日常迭代和release分支在开发完成后应该被删除&lt;/li&gt;
+  &lt;li&gt;多人协作，应该使用同一个远程分支&lt;/li&gt;
+  &lt;li&gt;每次发起pull request前，都需要先从master分支merge代码&lt;/li&gt;
+&lt;/ul&gt;
+</content>
+   </entry>
+   
+   <entry>
+     <title>创新是这个世界的源动力 —《从0到1》</title>
+     <link href="http://www.qiuliang.net/book/2015/07/18/zero-to-one.html"/>
+     <updated>2015-07-18T00:00:00+08:00</updated>
+     <id>http://www.qiuliang.net/book/2015/07/18/zero-to-one</id>
+     <content type="html">&lt;p&gt;&lt;img src=&quot;http://img3.douban.com/lpic/s28012945.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;大概1个多月以前，领导向我们推荐了这本书，来自于硅谷创业教父Peter Thiel的大作，如果你还不甚了解Peter，推荐自行google，简单来说，就是Paypal的founder之一，后来又在很早的时候投资了Facebook，以及在硅谷参与或投资了众多的科技公司。而这本书，我想就是peter在创立或投资一家公司时的一些总结和思考，其中大部分的内容，来源于其在斯坦福的一次分享。&lt;/p&gt;
+
+&lt;p&gt;书的篇幅不长，各个章节之间也并没有严密的逻辑关系，在这些看似分散、跳跃的片段中，能否真的找到商业的秘密？我想答案一定是否定的，毕竟在这个复杂的世界里，没有什么一成不变的事情，今天的秘密，不过是明天的常识而已。而作者除了教导我们一些自身的经验之外，更多的是希望引发读者对未来、对商业、对创新的一些思考。&lt;/p&gt;
+
+&lt;h2 id=&quot;section&quot;&gt;关于过去和未来&lt;/h2&gt;
+
+&lt;p&gt;了解历史，正视历史，对于每一个科技创业者甚至于对每一个人而言，都有着非同寻常的意义。peter在本书中，花了较长的篇幅和详细的数据，来向我们说明了90年中后期开始的互联网泡沫，从何而来，又如何破灭。无数的公司在那场盛筵中从巅峰跌落至谷底，只有少之又少的公司经受住了考验，并逐渐的开始开花结果，peter所创立的Paypal就是其中之一，这样的经验对于每一个创业者来说，都是应该要重视和思考的。经验一定不应该是教条式的，它应该能引发我们思考：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;大胆尝试胜过于平庸保守&lt;/li&gt;
+  &lt;li&gt;坏计划也好过没计划&lt;/li&gt;
+  &lt;li&gt;竞争性市场很难赚钱&lt;/li&gt;
+  &lt;li&gt;营销和产品同样重要&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;世上没有人可以精准的预测未来，能看清楚未来一两年的人，已经非比一般；而能看清楚未来五到十年的人，已然超越了这世界绝大多数的普通人，至于更遥远的未来，应该只有神能做到了吧？&lt;/p&gt;
+
+&lt;p&gt;对于科技创业者，有一点却是毋庸置疑的，那就是未来，一定是进步的。在这个进步的未来中，保持敏锐的嗅觉，或许能让我们在未来的道路上，不至于走偏。而如果你恰巧知道了某一领域从无到有，从0到1的秘密，这样做出一番事业的几率应该会大大提升。&lt;/p&gt;
+
+&lt;p&gt;书中提出的一些观点，我们应该反复思考：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;如果你想创造并获得持久的价值，不要只是跟风建立一个没有特色的企业。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;这一点其实对个人也同样适用，如果你想与众不同或是出类拔萃，不要跟风，做你自己，做真正有价值的事情。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;在完全竞争中，企业着眼于短期利益，不可能对未来进行长期规划。要想将企业从每日的生存竞赛中解脱出来，唯一的方法就是：获取垄断利润。而失败的企业原因却相同：它们都无法逃脱竞争。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;这应该就是peter想向我们表达的一些商业的秘密，却有太多的人看不清楚。因此，新思想是一个初创公司最重要的力量，质疑现有观念，从零开始重新审视自己所做的一切。在任何一次潮流到来的时候，我们不是应该去抵制或是盲从，在潮流中保持独立的思考才是我们应该做的。&lt;/p&gt;
+
+&lt;p&gt;关于如何建立一个垄断企业，peter也给了我们一些建议，例如：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;占领小市场&lt;/li&gt;
+  &lt;li&gt;扩大规模&lt;/li&gt;
+  &lt;li&gt;破坏性创新&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;前人的经验，只是我们的一个指引，如何去做，最终决定权在于你自己。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;关于秘密&lt;/h2&gt;
+
+&lt;p&gt;现在我们所知道的常识，在过去就是秘密。举几个科技方面的案例：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;人们虽然相隔万里，却能用电脑或手机利用网络进行面对面的交流&lt;/li&gt;
+  &lt;li&gt;随时随地使用手机来购物，并进行支付&lt;/li&gt;
+  &lt;li&gt;个人飞行背包也已经试飞成功&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这些在过去几百上千年到最近十年的时间里，都被认为是天方夜谭或是完全不为人知的秘密。但现在却有很大一部分人是不愿意探索秘密的，大致总结为如下几个原因：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;我们从小受到的教育是渐进主义式的&lt;/li&gt;
+  &lt;li&gt;害怕犯错，规避风险，自然也就错失了探索秘密的机会&lt;/li&gt;
+  &lt;li&gt;过于自满&lt;/li&gt;
+  &lt;li&gt;现在扁平化的世界，使人们怀疑自己对秘密的探索&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;可事实还是有许多秘密等着我们去探索，在商业上也是一样，成功的企业建立于开放却未知的秘密之上，想想这些公司：Google解决了人们对信息的强烈需求；Airbnb解决了游客和业主的实际需求；Uber则在出行上打破常规。&lt;/p&gt;
+
+&lt;p&gt;好的企业是改变世界的密谋者。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-2&quot;&gt;有意思的创始人&lt;/h2&gt;
+
+&lt;p&gt;关于创始人和初创团队，peter发现了一个有趣的现象：很多成功的初创公司的创始人团队，都有着个性鲜明或特立独行的一面。这些特质或是天生，但大多数我认为是后天环境影响改变，这个改变遵循着一个规律：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;自己将其夸大&lt;/li&gt;
+  &lt;li&gt;其他人将其夸大&lt;/li&gt;
+  &lt;li&gt;真正的不同&lt;/li&gt;
+  &lt;li&gt;发展为极端特质&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;想想自己或是身边的人，是不是觉得很有道理？比如你做了一件自认为不错的事情，然后分享给你周围的人，他们也觉得你很牛逼，这个时候迫于压力或是迫于面子，你需要把这件事情真正做好，周而复始，在某个领域你将越来越牛。我想这应该是符合心理学或是人性的需要吧。&lt;/p&gt;
+
+&lt;p&gt;当然，拥有这样特质的人不一定会创立企业，但大多都会经营自己的个人品牌，比如LadyGaga，她生来如此吗？我想未必吧。这样的人或许生来矛盾，具有这种特质的人，从概率上来讲，创立一个成功企业的几率确实比常人大。不过，再非同寻常的人也不及一个优秀团队的力量来的大。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-3&quot;&gt;结语&lt;/h2&gt;
+
+&lt;p&gt;不管未来的趋势如何，我们都应该相信，未来不是自行发生的，它取决于你、我和我们身边的每一个人，无所作为，还是尽力而为？取决于我们自己；在日常中创新，在常规中重构，打破旧有思维的禁锢，保持独立的思考，才有可能从0到1。&lt;/p&gt;
+
+</content>
+   </entry>
+   
+   <entry>
+     <title>Markdown资源分享</title>
+     <link href="http://www.qiuliang.net/tool/2014/11/27/markdown-resource-share.html"/>
+     <updated>2014-11-27T00:00:00+08:00</updated>
+     <id>http://www.qiuliang.net/tool/2014/11/27/markdown-resource-share</id>
+     <content type="html">&lt;p&gt;&lt;code&gt;Markdown&lt;/code&gt;的核心，就是使用极为简单的标记语法，来书写具备良好外观格式的文档解析工具，使作者的核心关注在文档内容本身，而不是如何排版上。&lt;/p&gt;
+
+&lt;h2 id=&quot;section&quot;&gt;常用语法&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;标题&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;# 标题一&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;## 标题二&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;### 标题N&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;有序/无序列表&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;- item
+- item2
+
+1. item1
+2. item2&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;引用&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&amp;gt; 这里是引用内容&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;强调加粗&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;**这里是加粗内容**&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;行内代码&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;这是一个&lt;code&gt;行内代码&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;这里是行内代码&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;代码高亮&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;sb&quot;&gt;```&lt;/span&gt; ruby
+&lt;span class=&quot;nv&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;test1&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; a.gsub&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/&lt;span class=&quot;se&quot;&gt;\d&lt;/span&gt;+/,&lt;span class=&quot;s1&quot;&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+print a&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+print b&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+a.gsub!&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/&lt;span class=&quot;se&quot;&gt;\d&lt;/span&gt;+/,&lt;span class=&quot;s1&quot;&gt;&amp;#39;b&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;sb&quot;&gt;```&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;推荐工具&lt;/h2&gt;
+
+&lt;h3 id=&quot;section-2&quot;&gt;客户端工具&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://markdownpad.com/&quot;&gt;MarkdownPad&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://www.mdcharm.com/&quot;&gt;MdCharm&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://pad.haroopress.com/&quot;&gt;Haroopad&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://25.io/mou/&quot;&gt;Mou&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://atom.io/&quot;&gt;Atom&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;markdown&quot;&gt;在线Markdown编辑器&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://dillinger.io&quot;&gt;dillinger.io&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://stackedit.io/editor&quot;&gt;stackedit&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.zybuluo.com/mdeditor&quot;&gt;CmdMarkdown&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://maxiang.info&quot;&gt;马克飞象&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;以上这些，是我平时收集的&lt;code&gt;Markdown&lt;/code&gt;文档编辑工具，几乎都是免费和开源工具，相信总有一款适合你，我个人平时使用&lt;code&gt;Haroopad&lt;/code&gt;、&lt;code&gt;Atom&lt;/code&gt;比较多一些。&lt;/p&gt;
+
+&lt;p&gt;如果上面的链接打开速度比较慢，请&lt;code&gt;翻墙&lt;/code&gt;，推荐翻墙服务：&lt;a href=&quot;http://refyt.com/?r=da2d2836b60e42ff&quot;&gt;云梯&lt;/a&gt;，该链接带有我的推荐码，你可以优惠10元，我可以得收益10元，谢谢！&lt;/p&gt;
+
+&lt;p&gt;Powered by Haroopad&lt;/p&gt;
+</content>
+   </entry>
+   
+   <entry>
+     <title>天才们的思维盛筵，《上帝掷骰子吗--量子物理史话》</title>
+     <link href="http://www.qiuliang.net/mind/2014/11/25/quantum-history.html"/>
+     <updated>2014-11-25T00:00:00+08:00</updated>
+     <id>http://www.qiuliang.net/mind/2014/11/25/quantum-history</id>
+     <content type="html">&lt;p&gt;最近“星际穿越”热映，周围关于宇宙的话题比比皆是，同事们的讨论、朋友圈的各种分析、影评。但宇宙究竟是个什么？时间又是个什么？是否真的存在虫洞？很难说清楚。&lt;/p&gt;
+
+&lt;p&gt;不禁让我想起几年前，一个同事推荐过的一本书，给我描述了几个故事，至今都印象深刻，一个是阿喀琉斯追龟辩、另一个是薛定谔的猫，虽说都是思维实验，但放到微观世界，似乎又很有道理，并且很诡异，这大大激发了我的兴趣，因当时并没有看完，决定找来这本书再看一遍：《上帝掷骰子吗–量子物理史话》。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;什么是量子&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;量子（quantum）是现代物理的重要概念。最早是M·普朗克在1900年提出的。他假设黑体辐射中的辐射能量是不连续的，只能取能量基本单位的整数倍。后来的研究表明，不但能量表现出这种不连续的分离化性质，其他物理量诸如角动量、自旋、电荷等也都表现出这种不连续的量子化现象。这同以牛顿力学为代表的经典物理有根本的区别。量子化现象主要表现在微观物理世界。描写微观物理世界的物理理论是量子力学。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;取自百度百科的解释&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;strong&gt;阿喀琉斯追龟辩&lt;/strong&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;阿喀琉斯（Achilles）是史诗《伊利亚特》里的希腊大英雄，以“捷足”而著称。有一天他碰到一只乌龟，乌龟嘲笑他说：“别人都说你厉害，但我看你如果跟我赛跑，还追不上我。”
+阿喀琉斯大笑说：“这怎么可能。我就算跑得再慢，速度也有你的10倍，哪会追不上你？”
+乌龟说：“好，那我们假设一下。你离我有100米，你的速度是我的10倍。现在你来追我了，但当你跑到我现在这个位置，也就是跑了100米的时候，我也已经又向前跑了10米。当你再追到这个位置的时候，我又向前跑了1米，你再追1米，我又跑了1/10米……总之，你只能无限地接近我，但你永远也不能追上我。”&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;闭上眼睛想象一下，似乎挺有道理，阿喀琉斯似乎永远也追不上龟，是不是很有趣？如果时间和空间具备连续性，且能被无限分割下去，那么上面这个故事是可以成立的，显然，在实际当中阿喀琉斯永远可以追得上乌龟，这说明时间和空间不一定能这样无限分割下去，&lt;strong&gt;量子效应使得时间和空间的连续性丧失了&lt;/strong&gt;。时间的连续性丧失说明了什么？我的理解是在某种特定条件下，时光倒流、快进也许是有可能的。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;薛定谔的猫和平行宇宙&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;什么是薛定谔的猫？建议大家自行搜索，我想要说的是，薛定谔的猫本身是由奥地利科学家薛定谔想出来的，用于攻击量子理论的不完备性，即如果量子理论中的不确定性成立，那么这只猫在打开盒子前处于一种即死又活的叠加状态，这显然是不可理解的。但后期由埃弗雷特提出的“平行宇宙”理论（或称作多世界理论），确可以很好的解释这个问题，即这只猫会“分裂”于两个互相正交不相干的平行宇宙中，一个世界中的猫已经死了，另一个世界中的猫还活着。虽然这听起来更加的疯狂，但却可以用完美的数学方程解释，是基于量子力学朴实的、符合逻辑的结果。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;如果你不被量子所困扰，那说明你还没有开始了解量子。&lt;/strong&gt;又是一句很拗口的话，之所以把这篇文章的标题定为“天才们的思维盛筵”，也缘于此。虽说到现在，量子理论的应用已开始实实在在的影响到我们的生活，从半导体到核能、从激光到显微镜、从集成电路到智能手机、从基因科技到分子生物学。但还是没有人能够真正对它进行彻底的阐述和解释，或许到了真正被人们所了解的时代，那么时空穿越、远程星际航行、物体瞬移，似乎都有了可能性。&lt;/p&gt;
+
+&lt;p&gt;书中列举了很多枯燥的物理、数学公式，但也并不是一本理论读物，作者讲故事的手法值得赞一个，从赫兹的电磁实验开始，慢慢的可以说是人类近现代史上最聪明的天才科学家们逐一登场，牛顿、普朗克、爱因斯坦、麦克斯韦、波尔、海森堡、赫兹、薛定谔、惠更斯、冯.诺依曼等等。这些与量子物理相关的科学家和各种历史场景被作者缓慢而有力的铺开，气势恢宏。从以牛顿的经典力学为代表的近代物理，到后来被量子物理所颠覆，这些大师们究其一生，就为了探寻宇宙的终极奥义，关乎信仰和生命。&lt;/p&gt;
+
+&lt;p&gt;随着“意识论”、“观测论”、“平行宇宙论”等概念的提出，更是让我们瞠目结舌，这些有着明显主观唯心主义色彩的论调，和以因果论为基础且严谨的通俗物理理论，有着天壤之别。牛顿建立的经典力学体系在微观世界里，被各种实验推翻，轰然崩塌。即使以“相对论”作为成名绝技的爱因斯坦，也因无法理解量子世界的种种诡异行为，而站到了量子理论的对立面。&lt;/p&gt;
+
+&lt;p&gt;量子理论是如此的神奇，却又实实在在的影响着我们的生活，而我们，一个普通人，也许顺其自然，关心身边鲜活的每一个人（也许这个人只是一堆电子原子的组合，也许只是某个多维空间真正的本我的投影），获得真正的快乐和希望，才是对我们而言最有意义的。而我们对微观、宏观世界的了解，只是在碰到真正的问题时，帮我们多一些思考，多一些正确的选择。&lt;/p&gt;
+
+&lt;p&gt;到这儿这篇文章其实有点写不下去了，干脆草草结束，或许将来会有新的思考。&lt;/p&gt;
+</content>
+   </entry>
    
    <entry>
      <title>文件存储系统映射模块原理解析</title>
@@ -377,6 +698,144 @@ git push origin remote-branch &lt;span class=&quot;c&quot;&gt;#3，更新远端&
    </entry>
    
    <entry>
+     <title>巴厘游记</title>
+     <link href="http://www.qiuliang.net/life/2014/07/12/life-bali-trip.html"/>
+     <updated>2014-07-12T07:24:52+08:00</updated>
+     <id>http://www.qiuliang.net/life/2014/07/12/life-bali-trip</id>
+     <content type="html">&lt;h2 id=&quot;section&quot;&gt;启程&lt;/h2&gt;
+
+&lt;p&gt;大概在两年前就想计划一次海岛游，但一直没能成行，原因很多：孩子年纪还小、时间、经济等各方面的。也没有定具体的目的地，考虑过的包括普吉岛、塞班、马尔代夫。唯独没有巴厘岛。&lt;/p&gt;
+
+&lt;p&gt;这次去的原因其实也很简单，公司福利，提供4天假期，前后加上端午、周末能凑9天。同行的包括另外两名同事和各自的家属，5月份定下来这个事情，然后就有同事研究目的地，正好有一天JM在途牛上看到了一个巴厘岛的产品，大家看了一下，觉得很不错，当天就下订单付款，事后证明我们是很明智的，第二天这个路线的产品每个人就上涨了1500左右。&lt;/p&gt;
+
+&lt;p&gt;来回都是海南航空，也是第一次坐海航的航班，总体来说比较不错，飞机很准时，空姐大都还比较养眼。但回来的时候是红眼航班，从凌晨0点到早上7点，说实话，真的太累了，以后还是尽量避免坐通宵的飞机。&lt;/p&gt;
+
+&lt;p&gt;7个小时的航程，我们都找到了各自的消遣方式。
+&lt;img src=&quot;/images/blog/bali/0.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;到达&lt;/h2&gt;
+
+&lt;p&gt;巴厘岛跟北京基本处在同一个经度，所以没有时差，但维度差很多，已经在南半球了，跟大洋洲隔海相望。落地登巴萨机场，已是晚上10点多，怀着小激动的心情走出机舱，迎接我们的不止是印度洋潮湿的空气，还有门口的安保人员，典型的东南亚人种，看上去似乎不是很友好，也许跟大晚上还要上班的心情有关。印尼对中国实施落地签（VISA ON ARRIVAL）政策，同时需要填写出入境卡，因飞机上没有事先提供，且我们当时也没有搞得特别清楚，直接导致我们7人在机场办理入境花了快2小时。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/bali/1.jpg&quot; alt=&quot;&quot; /&gt;
+在机场时，自己的行李最好自己拿好，不然会有工作人员主动过来帮你拿，当然是要给小费的，2-3刀即可。印尼是一个小费国家，尤其巴厘岛作为国际度假胜地，更是如此，有了之前机场的经验，入住酒店时，有个小黑哥过来帮我们提了箱子，事后老婆也很礼貌的给人小费致以谢意。在国内消费，是很少需要给小费的，大家也没有这个习惯，到了当地最好还是入乡随俗，也不用给太多，更多是一种礼貌的体现吧。&lt;/p&gt;
+
+&lt;p&gt;晚上11、2点左右，陆续有很多航班落地，游客大多是白人，有拖家带口的，也有很多扛着冲浪板的帅哥，毕竟巴厘岛也是世界级的冲浪圣地。欧美人（也许是澳洲人）带孩子的方式跟国人完全不一样，虽然已经很晚了，除了婴儿，没有看到有爸妈抱着的小孩，看上去2岁多的小姑娘就光脚丫跟着，当时机场的空调很大还是很凉的。两口子带2、3个孩子的家庭特别多，这让我觉得是一件非常困难的事情，尤其是最后一天在蓝点湾酒店碰到的一家人，更让我觉得不可思议，看似粗放的带孩子方式，还是有很多值得我们学习的地方。&lt;/p&gt;
+
+&lt;p&gt;到酒店安顿住下，已近凌晨1点，酒店条件一般，但工作人员态度很友好，会主动微笑着跟你打招呼。第二天早晨的自助早餐超出我的想象，好几种鲜榨果汁随便喝，当季主要以西瓜、哈密瓜、芒果、鳄梨、菠萝为主，都是本地自产，另外常见的水果还有山竹、蛇皮果、红毛丹，后面在超市看到的价格都便宜到让你想哭。还有一些鱼类和肉类，以及西式早餐常见的品种，其中一种肠尤其合我胃口，基本每天的早餐都是吃的最多的一顿。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/bali/2.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;section-2&quot;&gt;美香和阿布&lt;/h2&gt;
+
+&lt;p&gt;美香，我们的导游，印尼第四代华裔，祖籍广东，能听说中文却不能读写，会潮州话及英语，二十多岁的样子，短发干净利落，也很容易沟通，整个的行程都会让你觉得舒服。跟她聊天得知，当地人的工作基本围绕旅游行业，房价相当于国内二线城市，但别人是永久使用权。因为职业的关系，也了解了一些当地年轻人使用互联网的情况，比如：华人里面用微信的很多，社交主要是facebook。&lt;/p&gt;
+
+&lt;p&gt;阿布（貌似是这个发音，记不清了），我们的司机，本地土著，不会中文，只能说很简单的英文单词，很友好，似乎有点腼腆，上下车时会主动帮我们拿东西、关车门。最后一天没有导游，因我们想临时改变路线，跟他沟通半天都没说清楚，还是他想到给美香打电话后顺利解决。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-3&quot;&gt;初识库塔&lt;/h2&gt;
+
+&lt;p&gt;库塔（kuta）算是巴厘岛南部最繁华的地区，热闹的商业街、机场都在这个区域，离南边的海滩也很近，在酒店吃饱喝足，同过来接我们的司机和导游汇合，开始第一天的行程。 &lt;/p&gt;
+
+&lt;p&gt;道路都不是很宽，完全没有北京环路的霸气，当地人出行以摩托为主，汽车以两厢小车居多，基本都是日系，偶尔还能看见吉利熊猫，和香港一样，右舵行驶，红绿灯很少，想要租车自驾的还是趁早打消这个念头吧，除了需要国际驾照，更多的是不习惯，以及街上穿来穿去的摩托车实在太多了。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-4&quot;&gt;南湾&lt;/h2&gt;
+
+&lt;p&gt;南湾是库塔南部的一大片海滩，有各种水上运动项目，滑翔伞和甜甜圈、飞鱼什么的比较好玩，但海水和沙滩很一般，乐乐小朋友玩不了这种刺激的运动，就只好和妈妈挖沙子玩了，还和当地的叔叔互动得比较愉快，他们帮乐乐堆了一个美人鱼的尾巴，这让小妞高兴不已。
+&lt;img src=&quot;/images/blog/bali/3.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;玻璃底船算是一个特色，就是快艇把船底换成了玻璃的，方便在海里面观察各种热带鱼、珊瑚神马的。在我们坐船前往海龟岛的途中，每人发了一些面包，用来吸引鱼儿。海水清澈度非常高，被吸引过来的小鱼们也很是漂亮。
+&lt;img src=&quot;/images/blog/bali/4.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;玻璃底船的目的地就是海龟岛了，离南湾大概20分钟船程的小岛，里面有一个小型动物园，以海龟为主，还有一些别的动物：比一只鸡还大的蝙蝠、蟒蛇、巨嘴鸟、蜥蜴、鹰等。这里跟别的动物园不一样的地方是可以跟动物亲密接触，比如抱抱海龟、脖子上挂蟒蛇、提着大蝙蝠，只要你有勇气的话。
+&lt;img src=&quot;/images/blog/bali/5.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;section-5&quot;&gt;情人崖&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/bali/6.jpg&quot; alt=&quot;&quot; /&gt;
+跟美香见面时，就问过她巴厘岛最好看的景色都有什么，情人崖便是其中之一。第一天行程的下午就安排了这里，果然没有让我们失望，从进景点大门的时候就觉得环境很不错。站在悬崖边，望着宽广的印度洋，海水的颜色层次分明，白色的浪、浅蓝色、深蓝色的海水一直延伸至目力所不及之处。悬崖底下的沙滩非常干净，也没有人的样子，不知道是不是没有开发。悬崖上有一个水吧，可以点些饮料还有当地的炸香蕉，吹着海风，望着大海，真的很惬意。只是要小心悬崖上的猴子，它们一点也不怕人，会趁你不注意偷走你的炸香蕉，还有墨镜、帽子什么的，要小心这些大师兄。
+&lt;img src=&quot;/images/blog/bali/7.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;section-6&quot;&gt;金巴兰海滩&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/bali/8.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;据称是世界十大落日欣赏地点，但我们运气不是很好，那天有很厚的云层，没有看到最佳的日落。在金巴兰海滩我们享用了一顿海鲜烧烤大餐，其实更多的是吃的一种意境吧。小乐乐在这里邂逅了一条只有几个月大的小狗，她们在一起的感觉很有爱，回去后好好考虑下是不是要给她买个小狗？&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/bali/9.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;section-7&quot;&gt;蓝梦岛&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/bali/10.jpg&quot; alt=&quot;&quot; /&gt;
+第二天的行程就是出海去蓝梦岛，大概要1个小时的快艇，还是比较远，也正因为远，那边的海水才更蓝、更干净，适合潜水以及各种水上运动。因为没有潜水证，我们只能浮潜，即时是浮潜，也能看到很多的热带鱼，但这个体验跟做“海底漫步”时的体验又差远了，因为海底漫步可以真正的跟鱼类亲密接触。就是在头上带了一个很大的金属氧气面罩，跟着教练下到大概5-10米深的海底，因为头罩很重，可以双脚踩在海床上行走，事先会准备一些面包，捏在手里，一会就会游来很多的鱼围着你，颜色都很好看，大致数了一下有2、30种左右吧，反正我都不认识，趁它们吃面包的时候，可以用手去触摸这些美丽的海底精灵，这种感觉很奇妙，是我们隔着玻璃缸欣赏热带鱼时完全体会不到的，也许这才是真正的自然界中的和谐吧。&lt;/p&gt;
+
+&lt;p&gt;因为乐乐年纪太小，潜水类的运动她都参加不了，但最后跟我们一起坐了一趟飞碟，就是由快艇拉着一个圆形的气垫，我们三个人趴在气垫上面，由快艇拉着气垫在海面上飞驰，因为速度很快，气垫会被拉飞起来，全程我们都把小家伙紧紧地夹在中间，一家人在一起体验这种刺激的运动，感觉也很棒，至少小乐乐是非常开心的。&lt;/p&gt;
+
+&lt;h2 id=&quot;ayana&quot;&gt;Ayana&lt;/h2&gt;
+
+&lt;p&gt;Ayana是当地一个五星度假酒店的名字，本来计划是到里面的Rock Bar喝下午茶，但没想到人异常的多，排了一个多小时的队还没有轮到我们，不得不放弃，看来老外有时候也是很喜欢凑热闹的。&lt;/p&gt;
+
+&lt;p&gt;虽没有体验到著名的Rock Bar，但在Ayana里面逛了一圈也很值得，里面环境一流，每一个角落、花草、建筑都精心打造，真的是一个适合在这里住上几天的好地方，每天就在酒店里到处逛逛，去泳池游泳、私人沙滩戏水、看日落，真正的度假应该是这样的吧。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/bali/11.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;section-8&quot;&gt;海神庙&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/bali/12.jpg&quot; alt=&quot;&quot; /&gt;
+整个巴厘岛基本都信奉印度教，所以家庙、村庙都随处可见。海神庙位于巴厘岛西部的海岸线上，是当地最有名的庙宇之一，建在海边的大礁石之上，景色也很不错。整个海神庙包括周边被开发成了一个小公园，除了庙宇本身以外，其他基本没啥特色了。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-9&quot;&gt;乌布小镇&lt;/h2&gt;
+
+&lt;p&gt;从海神庙坐车前往乌布的途中，大片的水稻田、玉米地，还有很多高大的椰子树，繁茂的树林、植被，静谧的村落，偶尔也能看到戴着斗笠在田间劳作的当地人，竟让我想起小时候通往外婆家的田间小路，产生了一种身在中国南方农村的错觉。
+&lt;img src=&quot;/images/blog/bali/13.jpg&quot; alt=&quot;&quot; /&gt;
+大约1个小时左右，美香带我们到了一个看上去还蛮有特点的地方，去品尝当地特色脏鸭餐，虽是当地特色，但在我看来，跟中国美食还是没法比的，就是把鸭子用油酥过一遍，再配以一些小食、米饭，味道还过得去，鲜榨果汁依然是必点。这个吃饭的地方坐落于一片稻田边上，倒还有一些意思。
+&lt;img src=&quot;/images/blog/bali/14.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;吃饱喝足我们就前往乌布皇宫，说是皇宫，其实小的可怜，只是建筑有一些异域的特色，随便拍了些照片，就去旁边的乌布大市场逛了。大家都在这里挑选一些纪念品或者带回去的礼物，在我看来，都很普通，没有什么真正有特色的东西。市场里的小贩竟然大都会说一些中文，讨价还价起来熟练得很。乐乐在这个市场还逛得很happy，因为让她自己给小朋友们选购一些礼物，不过她基本上是什么都喜欢。市场里逛的人以中国人为主，我想这也是小贩会说中文的原因。乌布镇中心有条街，两边有不少特色的店，比如咖啡屋、餐吧等，很多老外都是租摩托车过来，随意得就像当地人。
+&lt;img src=&quot;/images/blog/bali/15.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;blue-point-bay&quot;&gt;蓝点湾（Blue Point Bay）&lt;/h2&gt;
+
+&lt;p&gt;第四天其他小伙伴选择去阿勇河漂流，我们一家三口选择泡酒店，各有不同的乐趣。蓝点湾是我们住的第二家酒店，在库塔最南端的海边，环境非常不错，尤其是悬崖边上的餐厅、无边泳池、玻璃教堂，都很美。早上醒来，拉开窗帘，外面有一个很大的阳台，站在阳台上，映入眼帘的是一个欧式小花园，漂亮且精致。免费自助早餐同样很棒，最棒的其实还是在悬崖边吃东西看海的感觉，一大早就已经有很多人在海边冲浪了。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/bali/16.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;无边泳池，拍出来的感觉就真的是和印度洋连在一起一样，让人心旷神怡。整个上午，我和乐乐就泡在泳池里面，这大概也是小妞玩水时间最长的一次了，而她也很勇敢的在深水区玩耍，即使带着游泳圈，在国内游泳池的时候她都是不敢去深水区的。或许是旁边2岁多的白人小孩happy的跳水，让她觉得其实没那么危险吧。而那个小孩没有任何防护措施，就这样跳到2米深的水里，扑腾几下又浮上来，再爬上去，再跳下来，很是欢乐，旁边的妈妈还带着更小的baby，就这样让他随意玩耍，完全不担心，这也让我佩服不已。&lt;/p&gt;
+
+&lt;p&gt;我们在泳池边享受了一把西式的午餐，其实也很简单，就是pizza加果汁，只是躺在沙滩椅上、穿着泳衣吃东西的感觉很棒，而这一天，也让我意识到真正的度假应该是这样的。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/bali/17.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;section-10&quot;&gt;洋人街&lt;/h2&gt;
+
+&lt;p&gt;下午等女士们做完SPA，也到了差不多要离开的时候了，我们选择了去库塔洋人街吃晚餐，晚上到了那边才发现原来巴厘岛还有一片这么繁华的商业街，有点北京三里屯的意思。我们选了海边的一个餐馆，还是西式为主，里面环境不错，还有乐队演出。点餐的时候比较有意思，乐乐想吃意大利面，但我们几个大人想了半天，都不知道意大利面的英文怎么说，后来小家伙急了，直接对服务员来了一句：spaghetti，而服务员竟然听懂了。我们才想起来意大利面就是spaghetti，幼儿园教过，有段时间她也在家念叨过这个单词，看来在幼儿园的英语没有白学：）
+&lt;img src=&quot;/images/blog/bali/18.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;section-11&quot;&gt;告别&lt;/h2&gt;
+
+&lt;p&gt;吃过晚餐，阿布把我们送到了机场，和他热情的握手道别，我们想说see you，但也许不会再遇上了吧。最后额外给了他一些小费，阿布则报以灿烂的笑容和他标志性的动作：竖大拇指。&lt;/p&gt;
+
+&lt;p&gt;在登巴萨机场排队check in的时候，还有个小插曲，几个排队的中国游客吵上了，看上去有50多的样子，被机场安保人员阻止，而这也让在旁边排队的我们尴尬不已。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-12&quot;&gt;再见巴厘&lt;/h2&gt;
+
+&lt;p&gt;在回去的航班上，想着这几天所经历的人和事，感触颇多，除了巴厘岛的蓝天、大海，还有国内游客和欧美游客的差异。&lt;/p&gt;
+
+&lt;p&gt;首先是玩的方式不一样，中国游客喜欢玩一些水上运动项目；喜欢到处逛各种景点；欧美人更多的是去冲浪、深潜；景点的欧美人也很少，他们更多的是要么拖家带口住在酒店里度假、要么在一些小店、街边闲逛。出行方式也不一样，中国人大都选择租车包车出行，赶各种景点；欧美人不是在酒店里，就是在海边游泳冲浪；要不就是在外面租辆摩托车到处跑。家庭度假方式也不一样，中国人大都是两口子带一个孩子，甚至3、4个大人带一个孩子；欧美人则是两口子带2到3个孩子，我们碰到的那一家最大的才4、5岁，中间的2岁多，最小的还是婴儿。&lt;/p&gt;
+
+&lt;p&gt;而这些差异最根本的还是社会、环境、文化的差异，别人习以为常的事情，在我们看来会很不解，反之也亦然。但这趟行程也让我们收获不少，增强家庭成员的感情、更正确的教育孩子的方式、开阔孩子以及大人的眼界等等。&lt;/p&gt;
+
+&lt;p&gt;还有很重要的一点就是，感受到人与生俱来的对自由的向往，回国后正好看到一篇文章说自由的三个层次，一个是财务的自由，这个毋庸置疑，自由是需要经济基础的，然后是迁徙的自由，人们可以去到任何想去的地方，安全、语言、文化都有能力把握好，最后是精神的自由，追求物质世界和精神世界的合一，并互相影响，以此完善自我，并影响世界。我想这个世界没有多少人可以实现哪怕最初级的财务自由，还是让我们在实现财务自由的道路上，努力奔跑吧。&lt;/p&gt;
+
+&lt;p&gt;落地北京是早上7点多，大家在免税店痛快的shopping了一把，当然主要还是以化妆品为主，比香港的还便宜，老婆到家后就后悔买少了。&lt;/p&gt;
+
+&lt;p&gt;头天晚上北京下了很大的雨，没想到第二天的天这么蓝，完全没有雾霾，甚至超过了南半球的印度洋上的蓝天，你更喜欢哪种蓝天呢？&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/bali/19.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+</content>
+   </entry>
+   
+   <entry>
      <title>Spring MVC + Mybatis + MySQL CRUD Demo</title>
      <link href="http://www.qiuliang.net/java/2014/07/04/Spring%20MVC-Mybatis-MySQL-CRUD-Demo.html"/>
      <updated>2014-07-04T00:00:00+08:00</updated>
@@ -690,359 +1149,75 @@ git push origin remote-branch &lt;span class=&quot;c&quot;&gt;#3，更新远端&
    </entry>
    
    <entry>
-     <title>使用Nginx结合Jekyll搭建静态博客</title>
-     <link href="http://www.qiuliang.net/jekyll/2013/12/14/jekyll-with-nginx.html"/>
-     <updated>2013-12-14T02:24:52+08:00</updated>
-     <id>http://www.qiuliang.net/jekyll/2013/12/14/jekyll-with-nginx</id>
-     <content type="html">&lt;p&gt;简单介绍一下Jekyll，是一个采用Ruby开发的一个静态博客引擎，非常的轻量级和简洁，原生支持markdown语法，个人感觉也适用于wiki类应用。配合disquz插件或国内的友言等，也可实现评论功能。&lt;/p&gt;
+     <title>2013，从激情到平静</title>
+     <link href="http://www.qiuliang.net/life/2014/03/02/life-summary-2013.html"/>
+     <updated>2014-03-02T00:00:00+08:00</updated>
+     <id>http://www.qiuliang.net/life/2014/03/02/life-summary-2013</id>
+     <content type="html">&lt;h2 id=&quot;section&quot;&gt;为何开始&lt;/h2&gt;
 
-&lt;h2 id=&quot;section&quot;&gt;环境准备&lt;/h2&gt;
+&lt;p&gt;每年写一篇相对长一些的自我总结，渐成一个习惯，即使很忙很苦逼，也要强迫自己完成这个事情，或许这对将来，意义重大。
+正好2013年在32岁生日那天，也写下了一篇感悟，过几个月再看，又是一番滋味，从中总结经验教训，即使更多的时候是看从前的一些傻逼不成熟的思考，也挺有意思，因此，2013年总结的主题是“从激情到平静”。&lt;/p&gt;
 
-&lt;ul&gt;
-  &lt;li&gt;单独的服务器或虚拟机或vps&lt;/li&gt;
-  &lt;li&gt;CentOS&lt;/li&gt;
-  &lt;li&gt;Ruby&lt;/li&gt;
-  &lt;li&gt;RubyGem&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;section-1&quot;&gt;&lt;strong&gt;安装&lt;/strong&gt;&lt;/h2&gt;
-&lt;p&gt;执行如下的命令后，即可在服务器上运行一个jekyll站点，内部的WebServer采用Ruby的Webrick，默认端口为4000，可通过http://yourdomain:4000来进行浏览。&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;~ &lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;gem install jekyll
-~ &lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;jekyll new jekyll_site
-~ &lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;jekyll_site
-~ &lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;jekyll serve&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;因为Jekyll产生的都是静态html文件，因此也可采用其他WebServer，例如：Nginx、Apache等。&lt;/p&gt;
-
-&lt;h3 id=&quot;nginx&quot;&gt;配置Nginx&lt;/h3&gt;
-
-&lt;p&gt;关键配置截图如下：&lt;/p&gt;
-
-&lt;p&gt;![20131213160522.jpg](C:/Users/1/Desktop/20131213160522.jpg “”)&lt;/p&gt;
-
-&lt;h2 id=&quot;section-2&quot;&gt;&lt;strong&gt;快速上手&lt;/strong&gt;&lt;/h2&gt;
-
-&lt;h3 id=&quot;section-3&quot;&gt;目录结构&lt;/h3&gt;
-&lt;p&gt;在正式开始写博客之前，需要先了解一下Jekyll的基本目录结构。&lt;/p&gt;
+&lt;p&gt;而每年都会有一些类似鸡汤的话语，在我困惑、充满负能量的时候，大喝一通作为鸡血来使用，现在能想起来的，比如：&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;_layouts&lt;/p&gt;
-
-    &lt;p&gt;公共模板文件目录，例如头尾、需要调用的样式和脚本等。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;_posts&lt;/p&gt;
-
-    &lt;p&gt;所有的文章都需要放在此目录下，支持markdown格式的源文件。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;_site&lt;/p&gt;
-
-    &lt;p&gt;Jekyll生成的网页文件目录，纯静态，因此也可用其他WebServer把站点根目录指向此目录来使用其他WebServer。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;css&lt;/p&gt;
-
-    &lt;p&gt;样式文件存放处。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;index.html&lt;/p&gt;
-
-    &lt;p&gt;首页模板，可使用Jekyll变量。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;_config.yml&lt;/p&gt;
-
-    &lt;p&gt;网站的各种配置信息。&lt;/p&gt;
-  &lt;/li&gt;
+  &lt;li&gt;（2009）follow your heart&lt;/li&gt;
+  &lt;li&gt;（2012）无所畏惧&lt;/li&gt;
+  &lt;li&gt;（2013）但行好事，莫问前程&lt;/li&gt;
+  &lt;li&gt;（2014）要是方向错了，再努力都是特么的白费&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h3 id=&quot;section-4&quot;&gt;发布文章&lt;/h3&gt;
+&lt;p&gt;等等，还有很多记不起来，或多或少左右我的三观，虽到目前为止，还未能让我的人生有质的变化。还是且行且思吧。&lt;/p&gt;
 
-&lt;p&gt;只需把你的markdown源文件拷贝到_posts目录即可，也可结合git来进行管理。
-然后执行以下命令：（需要进入到Jekyll根目录下）&lt;/p&gt;
+&lt;h2 id=&quot;section-1&quot;&gt;保持激情&lt;/h2&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;~ &lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;jekyll build&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;保持激情，这话或听或看了无数遍，有老板对下属，有各种高大上人士的鸡汤，有自己心里面的正义小人对邪恶小人。总之，在充满竞争的北上广深，要时刻让自己处于充血状态，才有可能让自己过得稍微好一些。&lt;/p&gt;
 
-&lt;p&gt;执行完后，会将markdown源文件转换为html文档。&lt;/p&gt;
+&lt;p&gt;其实生活中也没有必要无时无刻保持激情，人也必然不是汽车，加满油后又能跑500公里。适当的放松和放纵也未尝不可，当然这不是颓废的理由。&lt;/p&gt;
+
+&lt;h2 id=&quot;mac&quot;&gt;Mac和生活&lt;/h2&gt;
+
+&lt;p&gt;对审美的追求，前些天终于在同事的蛊惑下，在自己的不坚定意志面前，买了一台mac book pro，虽然现在工作需要，还是要在上面装个虚机跑windows，即使大部分时间在win下而非mac下（这在某些人眼里看来，的确是很傻逼的行为），但还是要逐渐去体会一件杰出科技工艺品带给我们的生活情趣和审美的提升。而我也一直相信，审美的提高，也会让自己对自身要求提高，对工作对事情的要求提高，进而影响三观，带来人生格局的变化，好的工具是会提高生产力的，这应该是一件高投资回报率的事情。&lt;/p&gt;
+
+&lt;p&gt;其实有关mac带来审美的变化，大多都是我道听途说，使用windows久了之后，再去适应一个新系统，应该是一件比较痛苦的事情，也会有诸多不便，不管怎样，从舒适区跳出来，尝试一下，或许有更好的风景。
+希望自己在明年的总结时，能分享出更多的关于mac带来的改变。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-2&quot;&gt;创业&lt;/h2&gt;
+
+&lt;p&gt;前几年的总结写了很多有关创业的想法，各种逆袭的故事也曾让我蠢蠢欲动。可自己也似乎一直是没做好放手一搏的准备，在我看来，创业意味着全力以赴、意味着放弃现在的很多东西、意味着承受更大的压力。在现在还没有看清方向的时候，还是暂且放一放。但梦想还是要有的，万一实现了呢？&lt;/p&gt;
+
+&lt;h2 id=&quot;section-3&quot;&gt;所谓平静&lt;/h2&gt;
+
+&lt;p&gt;所谓平静，我的理解更多的是顺其自然，尽自己所能，而非逆势而为。14年春节过后，广大有志青年开始周期性运动，各自奔赴承载着梦想的北上广深，而我也携老婆孩子，从老家到北京5.9环自己的“家”中，开始新一年的打拼。虽然近几年的情况比之前好了很多，但也难免会思考，这样做的意义在哪？这个问题肯定不止我一人在想，从知乎上年后最火爆的话题“为什么很多北上广深打拼的游子，远离亲人仍义无反顾”可以看出，这其实是一个社会性问题。&lt;/p&gt;
+
+&lt;p&gt;我认真的看完了知乎上这个问题几乎所有的答案，自然是有很强的共鸣，但似乎还是没有找到我最想要看到的答案。。。其实，不是大家想不到，而这的确是一个没有答案的问题，或者更准确的说，对每个人来讲，这个问题的答案都不一样。&lt;/p&gt;
+
+&lt;p&gt;或许一首歌的歌词，可以道出大多数人的心声：&lt;/p&gt;
 
 &lt;blockquote&gt;
-  &lt;p&gt;注意：需要在markdown源文件中添加jekyll头信息。并且markdown源文件的命令必须符合格式：2013-12-12-title&lt;/p&gt;
+  &lt;p&gt;我们决定了要在这座繁华的城市里忙碌的生活着
+为了那些不太确定的未来在努力的寻求着&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;&lt;span class=&quot;nn&quot;&gt;---&lt;/span&gt;
-&lt;span class=&quot;l-Scalar-Plain&quot;&gt;layout&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;post&lt;/span&gt;
-&lt;span class=&quot;l-Scalar-Plain&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;  &lt;span class=&quot;s&quot;&gt;&amp;quot;Advanced&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;Ruby&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;Tips&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;l-Scalar-Plain&quot;&gt;date&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;   &lt;span class=&quot;l-Scalar-Plain&quot;&gt;2013-12-12 18:24:52&lt;/span&gt;
-&lt;span class=&quot;l-Scalar-Plain&quot;&gt;categories&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;ruby&lt;/span&gt;
-&lt;span class=&quot;nn&quot;&gt;---&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;摘自《北京如果》&lt;/strong&gt;&lt;/p&gt;
 
-&lt;p&gt;title即页面的title信息，categories即文件目录，用空格分开代表多级目录。上面的头信息可代表如下的url：&lt;code&gt;http://yourdomain/ruby/2013/12/12/title.html&lt;/code&gt;&lt;/p&gt;
+&lt;h2 id=&quot;section-4&quot;&gt;逃离北京？&lt;/h2&gt;
 
-&lt;h2 id=&quot;section-5&quot;&gt;&lt;strong&gt;参考&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;随着小区不是北师大学区房的消息越传越广，离开北京的话题，也经常成为我和老婆讨论的焦点。可是离开之后去哪儿？却又是还没想明白的事情。老婆一直是坚定的偏向于离开北京的，而我却有着诸多顾虑，总觉得北京有很多值得留在这的理由，可是，北京是很好，可跟我有半毛钱关系吗？&lt;/p&gt;
 
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://www.jekyllrb.com/&quot;&gt;官方网站&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://jekyllcn.com/&quot; title=&quot;Jekyll官网中国镜像&quot;&gt;Jekyll官网中国镜像&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/mojombo/jekyll&quot;&gt;项目源码&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</content>
-   </entry>
-   
-   <entry>
-     <title>【Ruby on Rails】学习使用generator</title>
-     <link href="http://www.qiuliang.net/ruby/2013/12/13/ruby-on-rails-scaffold.html"/>
-     <updated>2013-12-13T02:24:52+08:00</updated>
-     <id>http://www.qiuliang.net/ruby/2013/12/13/ruby-on-rails-scaffold</id>
-     <content type="html">&lt;h2 id=&quot;scaffold&quot;&gt;scaffold基本使用命令&lt;/h2&gt;
+&lt;p&gt;北京有着全国最优质的教育资源，可我们家不是北京户口；北京有着全国最优质的医疗资源，可看病的不易相信每个北漂都深有体会，看个感冒都得排队2小时的场景至今让我对医院充满恐惧；北京有着全国最便宜的公交系统，可上下班拥挤的地铁让我还没到公司就已经身心疲惫；北京有着全国最多的工作机会，可人才的竞争程度之激烈，也是全国之最，我们的总监，永远是部门里来的最早，走的最晚的人，周末的加班也经常看到他的身影，别人光鲜的表面，是靠努力和汗水换回来的，而在很多时候，你付出的再多，也不一定是有收获的，聪明的头脑、胆识、眼界太多重要的因素了。你确定你就是那个最努力、最聪明的人？北京是中国的首都，可空气质量却排在倒数10位以内，即使侥幸在房价飞涨之前买了房，可你看看周围的环境，脏乱的街道、拥挤的等公交的人群、还有路边店铺、商贩发出的震耳欲聋的噪音、干燥的灰尘弥漫的空气、排成长龙的汽车和大量的人群，拥挤在红绿灯的路口，争分夺秒的抢着先通过。北京有着全国最好的道路交通秩序，可对于未赶上京牌末班车的我，只好尴尬的上一个天津牌照来解决刚需，而刚出的外地牌照限行新政，则直接拍死了我平时的用车需求，除非我只在六环及以外的远郊县开车。可我的家好歹住在5.9环，出去加个油都提心吊胆绕着走，这让我情何以堪啊。&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;rails generate scaffold Post id:integer title:string&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;这些，其实也不是北京的错。是谁的错，我也不知道。但这样的生活显然不是我所希望的，别的地方会好点么？答案对我来说未知。&lt;/p&gt;
 
-&lt;p&gt;执行完这条命令后，会自动生成model、view、controller的代码。&lt;/p&gt;
+&lt;p&gt;北京同样具有很多优势，北京的人文环境应该是国内一流的，这也许是我离开北京后最担心的问题，简单的人际关系、相对公平的规则，让我觉得生活相对轻松；北京的冬天很好过，哪里都有暖气，寒冷的冬天在暖气房间里穿着短衣短裤，这是出生在江南的我之前难以想象的，可怕的是现在已经非常习惯这样过冬了，每年春节回老家过年都是一种煎熬。当然最有诱惑力的还是北京也是互联网行业最发达的地区，薪资待遇平均最高且机会众多，虽谈不上什么事业，可这也许是最离不开的理由，也是最大的优势。&lt;/p&gt;
 
-&lt;h2 id=&quot;faq&quot;&gt;FAQ&lt;/h2&gt;
-&lt;ol&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;给model增加一个属性&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id=&quot;section-5&quot;&gt;家庭&lt;/h2&gt;
 
-    &lt;p&gt;例如：需要给post这个model增加一个属性“tag”，可执行如下的命令：&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ol&gt;
+&lt;p&gt;给家人一个健康、幸福的生活，是我一直在追求的目标。这个目标和是否离开北京这个命题的关系，到现在也还没彻底想明白，也许本身并不矛盾。&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;rails g migration AddTagsToPost tag:string&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id=&quot;section-6&quot;&gt;究竟要什么？&lt;/h2&gt;
 
-&lt;p&gt;执行完成后，会自动在db/migrate目录下生成相应的迁移文件，其中命令行里面的Add[Tags]To[Post]是约定好的格式，其中Tags代表字段名称，Post代表表的名称。然后使用&lt;code&gt;rake db:migrate&lt;/code&gt;命令使修改同步到数据库上。&lt;/p&gt;
-
-</content>
-   </entry>
-   
-   <entry>
-     <title>【Ruby on Rails】切换数据库到MySQL</title>
-     <link href="http://www.qiuliang.net/ruby/2013/12/13/ruby-change-db-to-mysql.html"/>
-     <updated>2013-12-13T02:24:52+08:00</updated>
-     <id>http://www.qiuliang.net/ruby/2013/12/13/ruby-change-db-to-mysql</id>
-     <content type="html">&lt;blockquote&gt;
-  &lt;p&gt;根据官方指导手册，建立的rails程序默认使用SQLite3作为数据源，接下来的内容描述了如何将数据源改变为MySQL。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;section&quot;&gt;操作步骤&lt;/h2&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;
-    &lt;p&gt;修改database.yml。&lt;/p&gt;
-
-    &lt;pre&gt;&lt;code&gt; development:
-  		adapter: mysql2
-  		encoding: utf8
-  		database: blog
-  		pool: 5
-  		username: dbuser
-  		password: &#39;123456&#39;
-  		socket: /tmp/mysql.sock
-&lt;/code&gt;&lt;/pre&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;修改Gemfile&lt;/p&gt;
-
-    &lt;pre&gt;&lt;code&gt; gem &#39;mysql2&#39;
-&lt;/code&gt;&lt;/pre&gt;
-  &lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;在使用scaffold的时候很可能会遇到错误：&lt;/p&gt;
-
-&lt;h6 id=&quot;cant-connect-to-local-mysql-server-through-socket&quot;&gt;Can’t connect to local MySQL server through socket&lt;/h6&gt;
-
-&lt;p&gt;出现这个错误的原因可能有很多，我的解决方案如下：&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;ln -s /var/run/mysqld/mysqld.sock /tmp/mysql.sock
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;但该问题会在系统重启后再次出现，彻底解决方案：&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;修改database.yml：socket: /var/run/mysqld/mysqld.sock
-&lt;/code&gt;&lt;/pre&gt;
-</content>
-   </entry>
-   
-   <entry>
-     <title>ASP.NET MVC 4 小项目开发总结</title>
-     <link href="http://www.qiuliang.net/asp.net/2013/12/13/aspnet-mvc4-project-summary.html"/>
-     <updated>2013-12-13T02:24:52+08:00</updated>
-     <id>http://www.qiuliang.net/asp.net/2013/12/13/aspnet-mvc4-project-summary</id>
-     <content type="html">&lt;p&gt;项目很小，就是一个企业站的前后台，主要包括新闻模块、产品模块、视频模块、留言。没有什么技术上的难点，大部分就是CRUD操作。开始之前评估开发时间为4天，实际coding时间为3天，debug时间为2天，关于debug时间较长的问题，后面有较为详细的分析。&lt;/p&gt;
-
-&lt;h2 id=&quot;section&quot;&gt;所用技术和工具&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Visual Studio 2012&lt;/li&gt;
-  &lt;li&gt;ASP.NET MVC 4&lt;/li&gt;
-  &lt;li&gt;Entify Framework 5&lt;/li&gt;
-  &lt;li&gt;Sqlite&lt;/li&gt;
-  &lt;li&gt;Uploadify&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;aspnet-mvc-4&quot;&gt;关于ASP.NET MVC 4&lt;/h2&gt;
-
-&lt;p&gt;相比MVC 3，个人感觉并没有太大的变化，也许是一些新特性没有用到。最大的感受是开始支持HTML5。&lt;/p&gt;
-
-&lt;h2 id=&quot;debug&quot;&gt;debug花费时间分析&lt;/h2&gt;
-
-&lt;p&gt;除开没有后台页面等其他因素，自身原因分析如下：&lt;/p&gt;
-
-&lt;h3 id=&quot;section-1&quot;&gt;拿到需求后没有进行较为详细的确认&lt;/h3&gt;
-
-&lt;p&gt;虽然项目需求简单，但有些地方开始时疏于沟通，最终所省掉的时间还是用在了debug上，甚至更多。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-2&quot;&gt;浏览器兼容性问题&lt;/h3&gt;
-
-&lt;p&gt;仅在开发阶段使用chrome浏览器，ie系也仅测试ie10，其余未考虑，后续在浏览器兼容性方面的调试花费了较多的时间。&lt;/p&gt;
-
-&lt;p&gt;例如如下的问题：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;ie7下jquery.validate报错&lt;/p&gt;
-
-    &lt;blockquote&gt;
-      &lt;p&gt;将&lt;code&gt;this.attr(&quot;novalidate&quot;, &quot;novalidate&quot;);&lt;/code&gt; 修改为：
-  &lt;code&gt;if (typeof (Worker) !== &quot;undefined&quot;) { this.attr(&#39;novalidate&#39;, &#39;novalidate&#39;); }&lt;/code&gt;&lt;/p&gt;
-    &lt;/blockquote&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;ie7下ckeditor的dialog加载iframe窗口高度不正常问题&lt;/p&gt;
-
-    &lt;blockquote&gt;
-      &lt;p&gt;尝试了很多网上的解决方案，均不管用，后来使用了一个非常规手段，就是给浏览器加上强制使用ie8模式的meta信息&lt;/p&gt;
-    &lt;/blockquote&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;ie8下jquery.validate不起作用&lt;/p&gt;
-
-    &lt;blockquote&gt;
-      &lt;p&gt;版本匹配问题：经测试：jquery-1.8.2 with jquery.validate-1.9正常&lt;/p&gt;
-    &lt;/blockquote&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;uploadify&quot;&gt;uploadify控件使用不是很熟练&lt;/h3&gt;
-
-&lt;p&gt;很多api需要现查官方文档，而且官方站点还需翻墙。同时在集成uploadify到ckeditor里面的时候，也花费了较多的时间，主要是用在查官方文档上面。这块写了较多的js代码，在后续浏览器兼容性方面调试也比较麻烦。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;firefox下上传文件出现http error 302&lt;/p&gt;
-
-    &lt;blockquote&gt;
-      &lt;p&gt;网上大部分的情况是firefox和chrome同时出现此问题，基本都是说session的原因，但我的环境chrome却没有出问题。我的解决方案比较简单，就是对上传文件的后台action取消授权检查。应该还是很session有关，更好的解决方案可查询谷歌。&lt;/p&gt;
-    &lt;/blockquote&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;entity-framework-sqlite&quot;&gt;Entity Framework sqlite数据源适配问题&lt;/h3&gt;
-&lt;p&gt;主要是开始无法新建sqlite数据源，ef的设计器总是报错，无法通过数据库更新实体等。另外sqlite中文模糊查询问题。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;设计器报错问题&lt;/p&gt;
-
-    &lt;blockquote&gt;
-      &lt;p&gt;需要到sqlite官网下载合适的数据源驱动程序
-&lt;a href=&quot;http://system.data.sqlite.org/index.html/doc/trunk/www/downloads.wiki&quot;&gt;http://system.data.sqlite.org/index.html/doc/trunk/www/downloads.wiki&lt;/a&gt;&lt;/p&gt;
-    &lt;/blockquote&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;sqlite中文字符串模糊查询问题&lt;/p&gt;
-
-    &lt;blockquote&gt;
-      &lt;p&gt;原来使用的方式：dbcontext.Post.Where(t=&amp;gt;t.Name.Contains(s))，对应的sql语句为charindex，改为：list = context.Database.SqlQuery&lt;product&gt;(string.Format(&quot;select * from product where name like &#39;%{0}%&#39;&quot;,arcTitle)).AsQueryable();&lt;/product&gt;&lt;/p&gt;
-    &lt;/blockquote&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-</content>
-   </entry>
-   
-   <entry>
-     <title>【Ruby on Rails】Advanced Ruby String Tips</title>
-     <link href="http://www.qiuliang.net/ruby/2013/12/13/advance-ruby-string-tips.html"/>
-     <updated>2013-12-13T02:24:52+08:00</updated>
-     <id>http://www.qiuliang.net/ruby/2013/12/13/advance-ruby-string-tips</id>
-     <content type="html">&lt;p&gt;&lt;code&gt;ord&lt;/code&gt;将字符转换为ASCII编码&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;sc&quot;&gt;?B&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ord&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;# =&amp;gt; 66&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;code&gt;chr&lt;/code&gt;将ASCII编码转换为字符&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;mi&quot;&gt;66&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;chr&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;# =&amp;gt; B&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;code&gt;split&lt;/code&gt;将字符串分割为数组&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;I love Ruby Programming&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&amp;#39; &amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;：&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;# =&amp;gt; [&amp;quot;I&amp;quot;,&amp;quot;love&amp;quot;,&amp;quot;Ruby&amp;quot;,&amp;quot;Programming&amp;quot;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;code&gt;split&lt;/code&gt;配合&lt;code&gt;uniq&lt;/code&gt;后并去重&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;aabbcc&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;uniq&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;：&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;# =&amp;gt; [&amp;quot;a&amp;quot;,&amp;quot;b&amp;quot;,&amp;quot;c&amp;quot;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;配合&lt;code&gt;sort&lt;/code&gt;进行排序，按ASCII编码大小&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;I love Ruby Programming&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;uniq&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sort&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;code&gt;scan&lt;/code&gt;从字符串中查找匹配的字符，返回数组&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;Everybody loves Ruby&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;sr&quot;&gt;/[a-m]/&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;# =&amp;gt; [&amp;quot;e&amp;quot;, &amp;quot;b&amp;quot;, &amp;quot;d&amp;quot;, &amp;quot;l&amp;quot;, &amp;quot;e&amp;quot;, &amp;quot;b&amp;quot;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;code&gt;gsub&lt;/code&gt;该函数的作用是使用正则替换掉字符串中匹配的值。变量调用&lt;code&gt;gsub&lt;/code&gt;方法后，变量本身不改变，如果需要改变，可在方法后加&lt;code&gt;!&lt;/code&gt;。&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;test1&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gsub&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;sr&quot;&gt;/\d+/&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gsub!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;sr&quot;&gt;/\d+/&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&amp;#39;b&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;# a =&amp;gt; test1&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;# b =&amp;gt; testa&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;# a =&amp;gt; testb&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;提取字符串中的数字，并乘以2后替换：&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;I am 18 years old.&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gsub&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;sr&quot;&gt;/\d+/&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;){&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;vg&quot;&gt;$&amp;amp;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;to_i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;# I am 36 years old.&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;提取字符串中的单引号和双引号，加上斜杠后替换：&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;n&quot;&gt;str&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;sx&quot;&gt;%q(Ruby said, &amp;quot;Don&amp;#39;t you like Ruby&amp;quot;)&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gsub&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;sr&quot;&gt;/[&amp;#39;&amp;quot;]/&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&amp;#39;\\&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;vg&quot;&gt;$&amp;amp;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;# Ruby said, \&amp;quot;Don\&amp;#39;t you like Ruby\&amp;quot;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;重复输出字符串N次：&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;hello&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;code&gt;capitalize&lt;/code&gt;将字符串首字母大写：&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;hello&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;capitalize&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;# Hello&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;code&gt;chop&lt;/code&gt;去掉末尾的一个字符：&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;hello&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;chop&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;# hell&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;code&gt;next&lt;/code&gt;将字符串末尾的一个字符替换为下一个字符，例如“a”替换为“b”，“1”替换为“2”，如果是非字母或数字的字符，则替换前一个。&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;hello&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;next&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;# hellp&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;code&gt;swapcase&lt;/code&gt;将字符串中的字母大小写反转替换。&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;Hello&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;swapcase&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;# hELLO&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;要的是一种生活状态。是一种内心强大、平和的感受，而非所谓的光环和看上去光鲜的表象。&lt;/p&gt;
 
 </content>
    </entry>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!--
+     **
+     * Author:         掌心
+     * Contact:        zhanxin.info@gmail.com
+     * Theme Name:     Violet ( Violet 主题代表着一种颜色，一种情感，还有一种美)
+     * Create Date:    2013.10
+     * Update:         2014.09
+     **
+    -->
+    <meta charset="utf-8" />
+    <title>
+        
+            git分支模型探讨
+                 
+    </title>
+    <meta name="generator" content="Jekyll" />
+    <meta name="author" content="" />
+    <meta name="description" content="在阅读本文之前，假设你已经熟悉了git的常用命令，并且对git的分支模型有了基本的了解。" />
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <!-- //页面样式 -->
+    <link rel="stylesheet" href="http://www.qiuliang.net/themes/violet/css/style.css" type="text/css" />
+    <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css" rel="stylesheet">
+    <!--<link href='http://fonts.googleapis.com/css?family=Spirax' rel='stylesheet' type='text/css'>-->
+    <!--<link rel="shortcut icon" href="http://www.qiuliang.net/themes/violet/images/favicon.ico" type="image/x-icon" />-->
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body id="violet">
+    <div class="page-wrapper">
+        <section class="head" id="violet-head">
+            <header class="header" id="violet-header">
+                <h1 class="logo"><a href="http://www.qiuliang.net">Qiuliang's Site</a></h1>
+                <h2 class="subtitle">做一个独立思考和具备创新能力的人，打造谦逊和强大的内心</h2>
+            </header>
+            <nav class="nav" id="violet-nav">
+                <ul class="nav-list">
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="/index.html">
+                            首页
+                        </a>
+                        
+                    </li>
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="/archives.html">
+                            文章归档
+                        </a>
+                        
+                    </li>
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="/contact.html">
+                            联系我
+                        </a>
+                        
+                    </li>
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="https://github.com/qiuliang/qiuliang.github.io">
+                            View on github
+                        </a>
+                        
+                    </li>
+                    
+                </ul>
+            </nav>
+        </section>
+        <section class="main" id="violet-main">
+            <article class="main-article main-article-page">
+    <div class="violet-title">
+        <h3 class="violet-title-item">git分支模型探讨</h3>
+    </div>
+    <div class="violet-post">
+        <p class="main-article-meta"><time pubdate="">2015-07-25</time></p>
+        <div class="main-article-contant">
+            <p>在阅读本文之前，假设你已经熟悉了git的常用命令，并且对git的分支模型有了基本的了解。</p>
+
+<p>基础常用命令：</p>
+
+<ul>
+  <li>git clone</li>
+  <li>git add</li>
+  <li>git commit </li>
+  <li>git push</li>
+  <li>git checkout</li>
+  <li>git branch</li>
+  <li>git fetch</li>
+  <li>git merge</li>
+  <li>git pull</li>
+  <li>…</li>
+</ul>
+
+<p>关于git分支模型，建议先阅读如下资料：</p>
+
+<ul>
+  <li><a href="http://www.ruanyifeng.com/blog/2012/07/git.html">阮一峰整理的一个比较简单的git分支模型</a></li>
+  <li><a href="https://github.com/xirong/my-git/blob/master/git-workflow-tutorial.md">较为全面的几种git分支模型介绍</a></li>
+</ul>
+
+<p>如下是网络上流传比较广泛的一个较为成熟的git分支示意图，基本能满足一般团队或个人进行代码管理。</p>
+
+<p><img src="/images/blog/git/4.png" alt="" /></p>
+
+<p>但每个team都有自己的需求和特点，生搬硬套不一定是合适的，和同事花1个多小时的时间讨论了一下，认为适合我们team的分支模型，大致如下。</p>
+
+<h2 id="section">需求背景</h2>
+
+<p>主要的需求如下：</p>
+
+<ul>
+  <li>能支持日常迭代开发、紧急线上bug修复、多功能并行开发</li>
+  <li>大概50人左右的团队，平日迭代项目较多，且周期短（1~2周一个迭代）</li>
+  <li>能够通过tag重建整个系统</li>
+  <li>支持code review</li>
+  <li>所有上线的代码必须都是经过测试保证，且能自动同步到下一次的迭代中</li>
+  <li>能和公司的项目管理/持续集成系统整合</li>
+</ul>
+
+<h2 id="section-1">分支模型说明</h2>
+
+<h3 id="section-2">1. 日常迭代</h3>
+
+<h4 id="section-3">1.1 流程说明</h4>
+
+<ul>
+  <li>项目负责人先初始化仓库</li>
+  <li>拉分支，同时包括develop和release分支</li>
+  <li>develop分支开发完成后，提交pull requests到release分支</li>
+  <li>进行code review，通过则merge到release分支</li>
+  <li>在release分支上进行build和生成上线包</li>
+  <li>部署上线包，上线完成后再merge到master，并打tag</li>
+</ul>
+
+<p><img src="/images/blog/git/1.png" alt="" /></p>
+
+<h4 id="section-4">1.2 后续迭代流程</h4>
+
+<ul>
+  <li>从master上一次tag处拉出分支，同时包括dev和release</li>
+  <li>在dev上进行开发和提交</li>
+  <li>开发完成后，提交pull request到release分支</li>
+  <li>进行code review，通过则merge到release分支</li>
+  <li>在release分支上进行build和生成上线包</li>
+  <li>部署上线包，上线完成后再merge到master，并打tag</li>
+</ul>
+
+<p><img src="/images/blog/git/2.png" alt="" /></p>
+
+<h3 id="section-5">2. 在正常迭代同时有紧急线上问题修复</h3>
+
+<ul>
+  <li>迭代分支同上</li>
+  <li>同时再拉出hotfix开发和hotfix_release分支</li>
+  <li>此时迭代和hotfix分支并行开发</li>
+  <li>如果hotfix开发完成，并在hotfix_release分支进行提测并上线</li>
+  <li>那么在迭代开发进行pull request前，应该要求先从master分支进行一次merge</li>
+</ul>
+
+<p><img src="/images/blog/git/3.png" alt="" /></p>
+
+<h3 id="section-6">3. 多功能并行</h3>
+
+<p>理论上和hotfix分支模型没有区别。</p>
+
+<h2 id="section-7">相关规范</h2>
+
+<ul>
+  <li>开发人员不应该操作master分支</li>
+  <li>由每个迭代或项目的负责人来进行code review和进行merge操作</li>
+  <li>各开发分支和release分支均应该push到远程仓库</li>
+  <li>日常迭代和release分支在开发完成后应该被删除</li>
+  <li>多人协作，应该使用同一个远程分支</li>
+  <li>每次发起pull request前，都需要先从master分支merge代码</li>
+</ul>
+
+        </div>
+    </div>
+</article>
+<nav class="pagination fn-clear" id="violet-paging">
+    <div class="pagination-list">
+        
+        <a class="prev" href="/book/2015/07/18/zero-to-one.html" rel="bookmark"><i class="fa fa-chevron-circle-left"></i>创新是这个世界的源动力 —《从0到1》</a>
+        
+        
+    </div>
+</nav>
+<div class="comment">
+    
+        <div class="comment-cnt">
+            <div id="disqus_thread"></div>
+        </div>
+    
+</div>
+
+        </section>
+        <footer class="foot" id="violet-foot">
+            <div class="footer fn-clear">
+                <!--<h1 class="logo">Qiuliang's Site</h1>-->
+            </div>
+            <div class="copyright">
+                <div class="copyright-cnt fn-clear">
+                    
+                    <a class="follow" href="https://www.facebook.com/liang.qiu.1" target="_blank"><i class="fa fa-facebook"></i></a>
+                    
+                    <a class="follow" href="http://github.com/qiuliang" target="_blank"><i class="fa fa-github"></i></a>
+                    
+                    <a class="follow" href="http://www.zhanxin.info" target="_blank"><i class="fa fa-twitter"></i></a>
+                    
+                    <a class="follow" href="http://www.zhanxin.info" target="_blank"><i class="fa fa-rss"></i></a>
+                    
+                    <p class="text">© Powered by <a href="http://jekyllrb.com/">Jekyll</a>. Theme : <a href="http://www.zhanxin.info">Violet</a></p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/jquery-1.8.3.js"></script>
+    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/jquery-scrollTo.js"></script>
+    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/common.js"></script>
+    <script type="text/javascript">
+        var headImgArr = [];
+        
+            headImgArr.push("/themes/violet/images/hdbg01.jpg");
+        
+            headImgArr.push("/themes/violet/images/hdbg02.jpg");
+        
+            headImgArr.push("/themes/violet/images/hdbg03.jpg");
+        
+            headImgArr.push("/themes/violet/images/hdbg04.jpg");
+        
+        if(headImgArr.length <= 0) {
+            headImgArr = ["/themes/violet/images/hdbg03.jpg"];
+            var item = 0;
+        } else {
+            var item = Math.floor(Math.random() * (headImgArr.length));
+        }
+        $("#violet-head").css({
+            "background-image": "url(" + headImgArr[item] + ")"
+        });
+    </script>
+    
+        
+        <script type="text/javascript">
+            //disqus
+            var disqus_shortname = 'qiuliang';
+            (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] ||
+                    document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        
+    
+</body>
+</html>
