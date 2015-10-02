@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!--
+     **
+     * Author:         掌心
+     * Contact:        zhanxin.info@gmail.com
+     * Theme Name:     Violet ( Violet 主题代表着一种颜色，一种情感，还有一种美)
+     * Create Date:    2013.10
+     * Update:         2014.09
+     **
+    -->
+    <meta charset="utf-8" />
+    <title>
+        
+            基于git、maven、nexus、jenkins搭建适合中小型技术团队的CI平台
+                 
+    </title>
+    <meta name="generator" content="Jekyll" />
+    <meta name="author" content="" />
+    <meta name="description" content="对于一个稍具规模的研发团队来说，每个角色都各司其职，如果没有一套很好的开发流程和管理手段，那在进行一些相对复杂的项目开发时，因开发流程不规范、管理和沟通效率低下带来的各种问题会层出不穷，大家也会手忙脚乱，不利于项目发展和团队配合。因此搭建一套适合自己团队的持续集成平台，是一个非常重要的事情，至少可以带来如下收益：" />
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <!-- //页面样式 -->
+    <link rel="stylesheet" href="http://www.qiuliang.net/themes/violet/css/style.css" type="text/css" />
+    <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css" rel="stylesheet">
+    <!--<link href='http://fonts.googleapis.com/css?family=Spirax' rel='stylesheet' type='text/css'>-->
+    <!--<link rel="shortcut icon" href="http://www.qiuliang.net/themes/violet/images/favicon.ico" type="image/x-icon" />-->
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body id="violet">
+    <div class="page-wrapper">
+        <section class="head" id="violet-head">
+            <header class="header" id="violet-header">
+                <h1 class="logo"><a href="http://www.qiuliang.net">Qiuliang's Site</a></h1>
+                <h2 class="subtitle">做一个独立思考和具备创新能力的人，打造谦逊和强大的内心</h2>
+            </header>
+            <nav class="nav" id="violet-nav">
+                <ul class="nav-list">
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="/index.html">
+                            首页
+                        </a>
+                        
+                    </li>
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="/archives.html">
+                            文章归档
+                        </a>
+                        
+                    </li>
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="/contact.html">
+                            联系我
+                        </a>
+                        
+                    </li>
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="https://github.com/qiuliang/qiuliang.github.io">
+                            View on github
+                        </a>
+                        
+                    </li>
+                    
+                </ul>
+            </nav>
+        </section>
+        <section class="main" id="violet-main">
+            <article class="main-article main-article-page">
+    <div class="violet-title">
+        <h3 class="violet-title-item">基于git、maven、nexus、jenkins搭建适合中小型技术团队的CI平台</h3>
+    </div>
+    <div class="violet-post">
+        <p class="main-article-meta"><time pubdate="">2015-10-02</time></p>
+        <div class="main-article-contant">
+            <blockquote>
+  <p>在阅读本文前，假设你对git、maven有了一个基本的了解，也包括一些其他的专有名词，如不了解，建议查阅官方资料或直接google。</p>
+</blockquote>
+
+<h2 id="section">为什么要搭建这样一个平台？</h2>
+
+<p>对于一个稍具规模的研发团队来说，每个角色都各司其职，如果没有一套很好的开发流程和管理手段，那在进行一些相对复杂的项目开发时，因开发流程不规范、管理和沟通效率低下带来的各种问题会层出不穷，大家也会手忙脚乱，不利于项目发展和团队配合。因此搭建一套适合自己团队的持续集成平台，是一个非常重要的事情，至少可以带来如下收益：</p>
+
+<ul>
+  <li>规范的代码分支管理</li>
+  <li>快速的构建</li>
+  <li>尽早的集成</li>
+  <li>提升多项目、多版本的并行能力</li>
+  <li>更可靠的代码和更稳健的应用</li>
+  <li>前后端更彻底的解耦和配合</li>
+</ul>
+
+<h2 id="ci">CI系统结构</h2>
+
+<p>基于团队的实际情况，我们搭建了如下的CI平台，基本都是用开源组件实现，其结构如下：</p>
+
+<p><img src="/images/blog/ci-archetect.jpg" alt="" /></p>
+
+<h3 id="h5pc-web">项目开发普通流程（主要是指H5/PC Web）</h3>
+
+<p>先简单介绍下我们的开发模式：一般将项目分为前后端两个team，前端team负责UI、样式、前端JS逻辑交互、异步渲染等工作；后端team主要负责数据加工、逻辑处理、持久化、分布式cache等工作。</p>
+
+<p>基于以上分工，一个常规的开发流程一般是这样的：</p>
+
+<ul>
+  <li>设计师设计UI</li>
+  <li>前端制作人员制作成HTML原型</li>
+  <li>后端开发人员进行rest接口开发</li>
+  <li>前端人员进行UI交互开发（过程中使用mock进行接口数据模拟，逐步过渡到后端开发人员提供的真实接口）</li>
+  <li>前、后端人员在项目开发中期开始在CI平台进行构建和集成</li>
+  <li>反复debug、持续构建，直至达到RC版本</li>
+  <li>上线、打tag</li>
+</ul>
+
+<p>使用这种开发模式，我认为可以带来如下好处：</p>
+
+<ul>
+  <li>分工清晰、职责明确</li>
+  <li>每个开发人员更加专注于自己的工作</li>
+  <li>系统边界清晰，封装更合理规范
+    <ul>
+      <li>对于后端开发人员来说，提供的api是给团队内另外的人来使用，因此在封装的时候，包括url、入参、出参等细节考虑更周全，更易于理解；</li>
+    </ul>
+  </li>
+  <li>前后端的debug更加容易</li>
+</ul>
+
+<p><strong>接下来针对该方案，介绍一下几个主要的系统组件的安装和配置方式。</strong></p>
+
+<blockquote>
+  <p>我们的标准环境一般是基于CentOS 6.5的最小化安装。</p>
+</blockquote>
+
+<h2 id="gitlab">gitlab安装和配置</h2>
+
+<p>git已经越来越流行，基本上成了互联网研发团队的标配，其灵活的分支模型以及强大的分布式仓库管理能力，对于管理大型项目复杂代码，完全能游刃有余，再搭配上gitlab，图形化的代码管理、简单易用的分支、tag管理，和基本的wiki、issue管理，现在gitlab已经开始出收费的版本了，但即便是免费的社区版本，功能已经是完全够用的。</p>
+
+<p>另外要强调一下的是gitlab所提供的pull request或者说code review功能，非常的不错，这对提高团队代码质量能起到很大的作用。</p>
+
+<h3 id="section-1">步骤</h3>
+
+<blockquote>
+  <p>基本按照官网操作步骤即可，以下操作可能会因版本变化而有所差异</p>
+</blockquote>
+
+<h4 id="section-2">1. 安装必须的依赖组件</h4>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">sudo yum install curl openssh-server postfix cronie
+sudo service postfix start
+sudo chkconfig postfix on
+sudo lokkit -s http -s ssh</code></pre></div>
+
+<h4 id="gitlab-rpm">2. 安装gitlab rpm包</h4>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.rpm.sh <span class="p">|</span> sudo bash
+sudo yum install gitlab-ce
+rpm -i gitlab-ce-XXX.rpm</code></pre></div>
+
+<h4 id="gitlab-1">3. 启动gitlab</h4>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">sudo gitlab-ctl reconfigure</code></pre></div>
+
+<h4 id="host">4. 访问host地址，使用默认的如下管理员账号可进行配置修改</h4>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">Username: root
+Password: 5iveL!fe</code></pre></div>
+
+<h2 id="mavennexus">maven私服（nexus）安装和配置</h2>
+
+<p>nexus的安装过程比较简单，从官网下载nexus压缩包后，直接解压到工作目录，执行如下命令即可：</p>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">./bin/nexus console</code></pre></div>
+
+<h2 id="jenkins">jenkins安装和配置</h2>
+
+<h3 id="jenkins-1">jenkins是什么？</h3>
+
+<p>简单来说，就是一个能提高开发人员效率的工具，减少一些重复的工作，例如：编译一个软件项目，通过cron去运行一个自动化任务。主要关注点如下：</p>
+
+<ul>
+  <li>持续build/testing一个软件项目</li>
+  <li>监控外部job的执行情况</li>
+</ul>
+
+<h3 id="section-3">安装</h3>
+
+<blockquote>
+  <p>java version “1.7.0_85”
+jenkins version : 1.624</p>
+</blockquote>
+
+<p>安装相关包：</p>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">- sudo wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
+- sudo rpm --import https://jenkins-ci.org/redhat/jenkins-ci.org.key
+- sudo yum install jenkins</code></pre></div>
+
+<p>启动服务：</p>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">- sudo service jenkins start/stop/restart
+- sudo chkconfig jenkins on</code></pre></div>
+
+<p>jenkins web端默认为8080端口，请确认防火墙是否打开。</p>
+
+<p>如果上面步骤都顺利的话，打开地址：Http://localhost:8080应该可以看到jenkins的管理界面了。</p>
+
+<h3 id="section-4">配置</h3>
+
+<h4 id="git">1. 安装git插件</h4>
+
+<p>默认没有集成git，需要先安装相关插件：</p>
+
+<ul>
+  <li>git plugin</li>
+  <li>git client plugin</li>
+</ul>
+
+<h4 id="centosgit">2. 升级CentOS下的git客户端</h4>
+
+<blockquote>
+  <p>因为jenkins的git插件需要使用1.7.9以上版本，而CentOS 6.5自带的git是1.7.1版本，需要先升级CentOS下的git。</p>
+</blockquote>
+
+<ul>
+  <li>rpm –import http://apt.sw.be/RPM-GPG-KEY.dag.txt</li>
+  <li>安装RPMForge源：rpm -i http://pkgs.repoforge.org/rpmforge-release/rpmforge-release-0.5.3-1.el6.rf.x86_64.rpm
+        注意选择不同的版本：http://pkgs.repoforge.org/rpmforge-release/</li>
+  <li>查看可用的git模块：yum –enablerepo=rpmforge-extras provides git</li>
+  <li>安装适合当前系统的版本：yum –enablerepo=rpmforge-extras install git-1.7.12.4-1.el6.rfx.x86_64</li>
+</ul>
+
+<h4 id="maven">3. 配置maven</h4>
+
+<ul>
+  <li>下载maven http://maven.apache.org/download.cgi</li>
+  <li>编辑环境变量：vi /etc/profile</li>
+</ul>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">export </span><span class="nv">M2_HOME</span><span class="o">=</span>/usr/local/apache-maven-3.3.3
+<span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:<span class="nv">$JAVA_HOME</span>/bin:<span class="nv">$M2_HOME</span>/bin
+<span class="nb">export </span>PATH USER LOGNAME MAIL HOSTNAME HISTSIZE HISTCONTROL</code></pre></div>
+
+<ul>
+  <li>环境变量生效：source /etc/profile</li>
+</ul>
+
+<h5 id="jenkinsmaven">3.1 在jenkins管理端配置maven</h5>
+
+<p><img src="/images/blog/jenkins-maven.png" alt="" /></p>
+
+<blockquote>
+  <p>在打包的时候，这个地方遇到了一个比较大的坑，主要是我的jenkins server安装在mac下的pd虚机上，如果使用默认的maven中央库的话，会一直报一个错误：</p>
+</blockquote>
+
+<p>应该是虚机的网络问题，无法连接到https协议的中央库，后来修改maven使用了oschina的第三方库后解决。</p>
+
+<blockquote>
+  <p>在jenkins执行job时又遇到了文件权限的错误，默认情况下maven生成的包位于如下目录：/var/lib/jenkins/jobs/test/workspace/</p>
+</blockquote>
+
+<p>需要修改执行jenkins用户对该目录的写入权限。</p>
+
+<blockquote>
+  <p>错误：Jenkins needs to know where your Maven is installed.
+这个问题的主要原因是全局系统设置中的maven的几个配置不正确，主要配置Maven、Maven Installation几个配置节。</p>
+</blockquote>
+
+<h4 id="jdk">4. 配置JDK</h4>
+
+<p><img src="/images/blog/jenkins-jdk.png" alt="" /></p>
+
+<p>在系统全局设置里面，进行JDK的配置：</p>
+
+<h4 id="section-5">5. 配置部署插件</h4>
+
+<p>到插件管理模块中安装：Deploy to container Plugin</p>
+
+<p>增加自动化部署的配置：</p>
+
+<p><img src="/images/blog/jenkins-deploy.png" alt="" /></p>
+
+<h3 id="job">新建一个job</h3>
+
+<ul>
+  <li>选择构建一个maven项目</li>
+  <li>选择需要的jdk版本</li>
+  <li>设置git代码分支地址和身份验证信息</li>
+  <li>选择pom文件的相对路径</li>
+  <li>设置deploy的target</li>
+</ul>
+
+<p>完成以上安装和配置工作后，基本上一套标准的CI工作流程就能跑起来了，enjoy！</p>
+
+        </div>
+    </div>
+</article>
+<nav class="pagination fn-clear" id="violet-paging">
+    <div class="pagination-list">
+        
+        <a class="prev" href="/tech/2015/07/25/git-branch-module.html" rel="bookmark"><i class="fa fa-chevron-circle-left"></i>git分支模型探讨</a>
+        
+        
+    </div>
+</nav>
+<div class="comment">
+    
+        <div class="comment-cnt">
+            <div id="disqus_thread"></div>
+        </div>
+    
+</div>
+
+        </section>
+        <footer class="foot" id="violet-foot">
+            <div class="footer fn-clear">
+                <!--<h1 class="logo">Qiuliang's Site</h1>-->
+            </div>
+            <div class="copyright">
+                <div class="copyright-cnt fn-clear">
+                    
+                    <a class="follow" href="https://www.facebook.com/liang.qiu.1" target="_blank"><i class="fa fa-facebook"></i></a>
+                    
+                    <a class="follow" href="http://github.com/qiuliang" target="_blank"><i class="fa fa-github"></i></a>
+                    
+                    <a class="follow" href="http://www.zhanxin.info" target="_blank"><i class="fa fa-twitter"></i></a>
+                    
+                    <a class="follow" href="http://www.zhanxin.info" target="_blank"><i class="fa fa-rss"></i></a>
+                    
+                    <p class="text">© Powered by <a href="http://jekyllrb.com/">Jekyll</a>. Theme : <a href="http://www.zhanxin.info">Violet</a></p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/jquery-1.8.3.js"></script>
+    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/jquery-scrollTo.js"></script>
+    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/common.js"></script>
+    <script type="text/javascript">
+        var headImgArr = [];
+        
+            headImgArr.push("/themes/violet/images/hdbg01.jpg");
+        
+            headImgArr.push("/themes/violet/images/hdbg02.jpg");
+        
+            headImgArr.push("/themes/violet/images/hdbg03.jpg");
+        
+            headImgArr.push("/themes/violet/images/hdbg04.jpg");
+        
+        if(headImgArr.length <= 0) {
+            headImgArr = ["/themes/violet/images/hdbg03.jpg"];
+            var item = 0;
+        } else {
+            var item = Math.floor(Math.random() * (headImgArr.length));
+        }
+        $("#violet-head").css({
+            "background-image": "url(" + headImgArr[item] + ")"
+        });
+    </script>
+    
+        
+        <script type="text/javascript">
+            //disqus
+            var disqus_shortname = 'qiuliang';
+            (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] ||
+                    document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        
+    
+</body>
+</html>
