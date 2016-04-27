@@ -13,13 +13,13 @@
     <meta charset="utf-8" />
     <title>
         
-            Qiuliang's Site
+            如何对gitlab server进行备份和恢复
                  
     </title>
     <meta name="generator" content="Jekyll" />
     <meta name="author" content="" />
-    <meta name="description" content="这是 PIZn 的又一个博客，它是基于 Jekyll 搭建起来的。在这里，不仅仅是用来快速记录工作，学习，生活的一点一滴的地方，更是 PIZn 对 Jekyll 的学习和使用的一次有意义的实践。" />
-    <meta name="keywords" content="PIZn, GitHub, Jekyll, Plugins, Works, Archives, Quotes, Violet, css, html, javascript, wordpress, logo, design, geek" />
+    <meta name="description" content="gitlab为我们提供了一些方法来创建一个完整的备份，该备份文件是一个压缩包，名称类似于：`[Timestamp]_gitlab_backup.tar` 该备份文件包含了所有的DB数据、仓库文件、以及用户上传的一些附件。" />
+    <meta name="keywords" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <!-- //页面样式 -->
     <link rel="stylesheet" href="http://www.qiuliang.net/themes/violet/css/style.css" type="text/css" />
@@ -79,93 +79,91 @@
             </nav>
         </section>
         <section class="main" id="violet-main">
-            
-<article class="main-article">
+            <article class="main-article main-article-page">
+    <div class="violet-title">
+        <h3 class="violet-title-item">如何对gitlab server进行备份和恢复</h3>
+    </div>
     <div class="violet-post">
-        <h3 class="main-article-title"><a href="/ruby/2013/12/13/ruby-on-rails-scaffold.html" title="【Ruby on Rails】学习使用generator" rel="bookmark">【Ruby on Rails】学习使用generator</a></h3>
-        <p class="main-article-meta"><time pubdate="2013-12-13">2013-12-13</time></p>
+        <p class="main-article-meta"><time pubdate="">2016-03-09</time></p>
         <div class="main-article-contant">
-            <p>scaffold基本使用命令，rails generate scaffold Post id:integer title:string</p>
-            <p class="main-article-more"><a href="/ruby/2013/12/13/ruby-on-rails-scaffold.html" title="Read More" rel="nofollow">Read More</a></p>
+            <blockquote>
+  <p>基于gitlab社区版8.5.4</p>
+</blockquote>
+
+<h2 id="section">创建一个备份</h2>
+<p>gitlab为我们提供了一些方法来创建一个完整的备份，该备份文件是一个压缩包，名称类似于：<code>[Timestamp]_gitlab_backup.tar</code> 该备份文件包含了所有的DB数据、仓库文件、以及用户上传的一些附件。</p>
+
+<p>进行一次备份：
+sudo gitlab-rake gitlab:backup:create</p>
+
+<p>最终如果出现如下提示信息，则代表备份成功。</p>
+
+<p><img src="/images/blog/gitlab-backup.png" alt="" /></p>
+
+<p>备份文件默认保存在如下目录：/var/opt/gitlab/backups，可通过编辑 /var/opt/gitlab/gitlab-rails/etc/gitlab.yml文件的Backup Settings节进行修改。</p>
+
+<h3 id="section-1">备份配置文件</h3>
+
+<p>db的授权文件和两步验证所需要的密钥信息存储在/etc/gitlab/gitlab-secrets.json文件中，需要单独备份。
+gitlab.yml文件也不会包含在上面的备份文件中。</p>
+
+<h2 id="gitlab">恢复gitlab</h2>
+
+<blockquote>
+  <p>按照官方文档的要求，只能还原备份文件到同一版本的gitlab系统中。</p>
+</blockquote>
+
+<p>先搭建一个同版本的gitlab到另外一台主机上。（具体安装步骤请参考官方文档）</p>
+
+<p>环境准备完成后，执行如下命令：
+1，拷贝备份文件到新的主机上。
+2，停止相关服务
+sudo gitlab-ctl stop unicorn
+sudo gitlab-ctl stop sidekiq
+3，还原数据
+gitlab-rake gitlab:backup:restore BACKUP=1457505197
+4，启动
+sudo gitlab-ctl start</p>
+
+<p>做完上述操作后，查看系统数据都已经恢复，包括仓库、用户、分组等。</p>
+
+<blockquote>
+  <p>配置文件和secret文件的恢复需要手工操作。</p>
+</blockquote>
+
+<h2 id="section-2">其他实践</h2>
+
+<h3 id="git-data">更改git data目录</h3>
+
+<p>为了保证数据的安全，一般我们会考虑把git的数据目录放到其他共享存储中，比如：NAS、Virtual SAN等，这时就需要我们修改gitlab中默认的data文件存储路径。</p>
+
+<p>1，修改gitlab.rb文件中的 git-data-dir参数
+2，gitlab-ctl reconfigure
+3，gitlab-ctl start</p>
+
+<h3 id="section-3">自动备份</h3>
+
+<p>gitlab已经为我们提供了自动备份数据的解决方案，包括cron任务的管理、自动同步到第三方云存储（例如亚马逊AWS），具体参考：http://doc.gitlab.com/ce/raketasks/README.html
+当然你也可以用其他方式来备份数据，例如我们的git server位于虚拟化环境，那么可以定期完全备份整个虚机和磁盘，恢复起来也很简单的方便。</p>
+
         </div>
     </div>
 </article>
-
-<article class="main-article">
-    <div class="violet-post">
-        <h3 class="main-article-title"><a href="/ruby/2013/12/13/ruby-change-db-to-mysql.html" title="【Ruby on Rails】切换数据库到MySQL" rel="bookmark">【Ruby on Rails】切换数据库到MySQL</a></h3>
-        <p class="main-article-meta"><time pubdate="2013-12-13">2013-12-13</time></p>
-        <div class="main-article-contant">
-            <p>根据官方指导手册，建立的rails程序默认使用SQLite3作为数据源，接下来的内容描述了如何将数据源改变为MySQL。</p>
-            <p class="main-article-more"><a href="/ruby/2013/12/13/ruby-change-db-to-mysql.html" title="Read More" rel="nofollow">Read More</a></p>
-        </div>
-    </div>
-</article>
-
-<article class="main-article">
-    <div class="violet-post">
-        <h3 class="main-article-title"><a href="/asp.net/2013/12/13/aspnet-mvc4-project-summary.html" title="ASP.NET MVC 4 小项目开发总结" rel="bookmark">ASP.NET MVC 4 小项目开发总结</a></h3>
-        <p class="main-article-meta"><time pubdate="2013-12-13">2013-12-13</time></p>
-        <div class="main-article-contant">
-            <p>项目很小，就是一个企业站的前后台，主要包括新闻模块、产品模块、视频模块、留言。没有什么技术上的难点，大部分就是CRUD操作。开始之前评估开发时间为4天，实际coding时间为3天，debug时间为2天，关于debug时间较长的问题，后面有较为详细的分析。</p>
-            <p class="main-article-more"><a href="/asp.net/2013/12/13/aspnet-mvc4-project-summary.html" title="Read More" rel="nofollow">Read More</a></p>
-        </div>
-    </div>
-</article>
-
-<article class="main-article">
-    <div class="violet-post">
-        <h3 class="main-article-title"><a href="/ruby/2013/12/13/advance-ruby-string-tips.html" title="【Ruby on Rails】Advanced Ruby String Tips" rel="bookmark">【Ruby on Rails】Advanced Ruby String Tips</a></h3>
-        <p class="main-article-meta"><time pubdate="2013-12-13">2013-12-13</time></p>
-        <div class="main-article-contant">
-            <p>`ord`将字符转换为ASCII编码</p>
-            <p class="main-article-more"><a href="/ruby/2013/12/13/advance-ruby-string-tips.html" title="Read More" rel="nofollow">Read More</a></p>
-        </div>
-    </div>
-</article>
-
-<article class="main-article">
-    <div class="violet-post">
-        <h3 class="main-article-title"><a href="/resume/2012/03/20/tech-tree.html" title="技能树" rel="bookmark">技能树</a></h3>
-        <p class="main-article-meta"><time pubdate="2012-03-20">2012-03-20</time></p>
-        <div class="main-article-contant">
-            <p>技能树</p>
-            <p class="main-article-more"><a href="/resume/2012/03/20/tech-tree.html" title="Read More" rel="nofollow">Read More</a></p>
-        </div>
-    </div>
-</article>
-
-<article class="main-article">
-    <div class="violet-post">
-        <h3 class="main-article-title"><a href="/javascript/2011/04/27/web-javascript-this.html" title="JavaScript中的this" rel="bookmark">JavaScript中的this</a></h3>
-        <p class="main-article-meta"><time pubdate="2011-04-27">2011-04-27</time></p>
-        <div class="main-article-contant">
-            <p>如果是一个全局的function，则this相当于window对象，在function里定义的各种属性或者方法可以在function外部访问到，前提是这个function需要被调用。</p>
-            <p class="main-article-more"><a href="/javascript/2011/04/27/web-javascript-this.html" title="Read More" rel="nofollow">Read More</a></p>
-        </div>
-    </div>
-</article>
-
-
 <nav class="pagination fn-clear" id="violet-paging">
-    <ul class="pagination-list">
+    <div class="pagination-list">
         
-            
-                <li><a href="http://www.qiuliang.net/">1</a></li>
-            
+        <a class="prev" href="/life/2016/03/02/logic-mind-1.html" rel="bookmark"><i class="fa fa-chevron-circle-left"></i>罗辑思维观点解读（一）</a>
         
-            
-                <li><a href="http://www.qiuliang.net/page2/">2</a></li>
-            
         
-            
-                <li class="current"><a href="javascript:void(0);">3</a></li>
-            
-        
-    </ul>
+    </div>
 </nav>
-
-
+<div class="comment">
+    
+        <div class="comment-cnt">
+            <div id="disqus_thread"></div>
+        </div>
+    
+</div>
 
         </section>
         <footer class="foot" id="violet-foot">
@@ -213,6 +211,19 @@
             "background-image": "url(" + headImgArr[item] + ")"
         });
     </script>
+    
+        
+        <script type="text/javascript">
+            //disqus
+            var disqus_shortname = 'qiuliang';
+            (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] ||
+                    document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        
     
 </body>
 </html>
