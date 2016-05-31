@@ -13,12 +13,12 @@
     <meta charset="utf-8" />
     <title>
         
-            如何对gitlab server进行备份和恢复
+            基于GitLab API实现自动化任务
                  
     </title>
     <meta name="generator" content="Jekyll" />
     <meta name="author" content="" />
-    <meta name="description" content="gitlab为我们提供了一些方法来创建一个完整的备份，该备份文件是一个压缩包，名称类似于：`[Timestamp]_gitlab_backup.tar` 该备份文件包含了所有的DB数据、仓库文件、以及用户上传的一些附件。" />
+    <meta name="description" content="之前在团队里[基于git、maven、nexus、jenkins搭建适合中小型技术团队的CI平台](/tech/2015/10/02/git-nexus-jenkins-ci.html)，这套系统运行近一年，整体来说还是比较稳定可靠，使用起来也比较方便，基本解决了中小规模团队的CI需求。但有个功能一直未完善，使用起来略有不便，就是自动打tag，因我们的build和部署是采用了两套jenkins去实现，而在部署环节的jenkins，是不需要和git交互的，因此也不方便使用类似：`git tag` 这样的命令去完成自动打tag的功能。因此首先想到的解决方案便是在部署机上通过插件或CURL等方式去调用gitlab的一个api，这样应该能够解决这个问题。" />
     <meta name="keywords" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <!-- //页面样式 -->
@@ -81,70 +81,76 @@
         <section class="main" id="violet-main">
             <article class="main-article main-article-page">
     <div class="violet-title">
-        <h3 class="violet-title-item">如何对gitlab server进行备份和恢复</h3>
+        <h3 class="violet-title-item">基于GitLab API实现自动化任务</h3>
     </div>
     <div class="violet-post">
-        <p class="main-article-meta"><time pubdate="">2016-03-09</time></p>
+        <p class="main-article-meta"><time pubdate="">2016-05-31</time></p>
         <div class="main-article-contant">
-            <blockquote>
-  <p>基于gitlab社区版8.5.4</p>
-</blockquote>
+            <h2 id="section">背景</h2>
 
-<h2 id="section">创建一个备份</h2>
-<p>gitlab为我们提供了一些方法来创建一个完整的备份，该备份文件是一个压缩包，名称类似于：<code>[Timestamp]_gitlab_backup.tar</code> 该备份文件包含了所有的DB数据、仓库文件、以及用户上传的一些附件。</p>
+<p>之前在团队里<a href="/tech/2015/10/02/git-nexus-jenkins-ci.html">基于git、maven、nexus、jenkins搭建适合中小型技术团队的CI平台</a>，这套系统运行近一年，整体来说还是比较稳定可靠，使用起来也比较方便，基本解决了中小规模团队的CI需求。</p>
 
-<p>进行一次备份：
-sudo gitlab-rake gitlab:backup:create</p>
+<p>但有个功能一直未完善，使用起来略有不便，就是自动打tag，因我们的build和部署是采用了两套jenkins去实现，而在部署环节的jenkins，是不需要和git交互的，因此也不方便使用类似：<code>git tag</code> 这样的命令去完成自动打tag的功能。</p>
 
-<p>最终如果出现如下提示信息，则代表备份成功。</p>
+<p>因此首先想到的解决方案便是在部署机上通过插件或CURL等方式去调用gitlab的一个api，这样应该能够解决这个问题。</p>
 
-<p><img src="/images/blog/gitlab-backup.png" alt="" /></p>
+<h2 id="section-1">实现</h2>
 
-<p>备份文件默认保存在如下目录：/var/opt/gitlab/backups，可通过编辑 /var/opt/gitlab/gitlab-rails/etc/gitlab.yml文件的Backup Settings节进行修改。</p>
+<p>研究了下gitlab的官方文档，发现确实有提供相关API来进行tag的创建，除此之外，还提供了很多其他API，足够你实现很多方便的功能。</p>
 
-<h3 id="section-1">备份配置文件</h3>
+<h3 id="section-2">授权</h3>
 
-<p>db的授权文件和两步验证所需要的密钥信息存储在/etc/gitlab/gitlab-secrets.json文件中，需要单独备份。
-gitlab.yml文件也不会包含在上面的备份文件中。</p>
+<p>调用api都需要使用一个gitlab账号的private token，每个git账号都有不同的private token，查看方法：
+登录gitlab，进入Profile Setting — Account，可以看到如下界面：</p>
 
-<h2 id="gitlab">恢复gitlab</h2>
+<p><img src="/images/blog/2016/gitlab-token.jpg" alt="" /></p>
 
-<blockquote>
-  <p>按照官方文档的要求，只能还原备份文件到同一版本的gitlab系统中。</p>
-</blockquote>
+<p>这个token可以通过header或者query string方式加到调用请求里。</p>
 
-<p>先搭建一个同版本的gitlab到另外一台主机上。（具体安装步骤请参考官方文档）</p>
+<h3 id="api">调用API</h3>
 
-<p>环境准备完成后，执行如下命令：
-1，拷贝备份文件到新的主机上。
-2，停止相关服务
-sudo gitlab-ctl stop unicorn
-sudo gitlab-ctl stop sidekiq
-3，还原数据
-gitlab-rake gitlab:backup:restore BACKUP=1457505197
-4，启动
-sudo gitlab-ctl start</p>
+<p>以创建tag为例，其api形式如下：</p>
 
-<p>做完上述操作后，查看系统数据都已经恢复，包括仓库、用户、分组等。</p>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">POST /projects/:id/repository/tags</code></pre></figure>
 
-<blockquote>
-  <p>配置文件和secret文件的恢复需要手工操作。</p>
-</blockquote>
+<p>其中参数id可以通过另一接口获取：</p>
 
-<h2 id="section-2">其他实践</h2>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">GET /projects</code></pre></figure>
 
-<h3 id="git-data">更改git data目录</h3>
+<p>传入必须的参数后，gitlab会返回类似于如下的消息，则说明创建tag成功：</p>
 
-<p>为了保证数据的安全，一般我们会考虑把git的数据目录放到其他共享存储中，比如：NAS、Virtual SAN等，这时就需要我们修改gitlab中默认的data文件存储路径。</p>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="o">{</span>
+  <span class="s2">&quot;name&quot;</span>: <span class="s2">&quot;test&quot;</span>,
+  <span class="s2">&quot;message&quot;</span>: null,
+  <span class="s2">&quot;commit&quot;</span>: <span class="o">{</span>
+    <span class="s2">&quot;id&quot;</span>: <span class="s2">&quot;7cdbfcf12de62dae7fef5ad7eac6b41ab6d04ad9&quot;</span>,
+    <span class="s2">&quot;message&quot;</span>: <span class="s2">&quot;Merge branch &#39;weixin&#39; into develop\n&quot;</span>,
+    <span class="s2">&quot;parent_ids&quot;</span>: <span class="o">[</span>
+      <span class="s2">&quot;82e05eb5e681f46810b6e113140bc8577ee0ec64&quot;</span>,
+      <span class="s2">&quot;bb2c9646608196eaf4fb5b9b39b5f74bfd9df9b1&quot;</span>
+    <span class="o">]</span>,
+    <span class="s2">&quot;authored_date&quot;</span>: <span class="s2">&quot;2016-05-30T18:06:53.000+08:00&quot;</span>,
+    <span class="s2">&quot;author_name&quot;</span>: <span class="s2">&quot;邱梁&quot;</span>,
+    <span class="s2">&quot;author_email&quot;</span>: <span class="s2">&quot;qiuliang@sohochina.com&quot;</span>,
+    <span class="s2">&quot;committed_date&quot;</span>: <span class="s2">&quot;2016-05-30T18:06:53.000+08:00&quot;</span>,
+    <span class="s2">&quot;committer_name&quot;</span>: <span class="s2">&quot;邱梁&quot;</span>,
+    <span class="s2">&quot;committer_email&quot;</span>: <span class="s2">&quot;qiuliang@sohochina.com&quot;</span>
+  <span class="o">}</span>,
+  <span class="s2">&quot;release&quot;</span>: null
+<span class="o">}</span></code></pre></figure>
 
-<p>1，修改gitlab.rb文件中的 git-data-dir参数
-2，gitlab-ctl reconfigure
-3，gitlab-ctl start</p>
+<h3 id="api-1">部署成功后调用api</h3>
 
-<h3 id="section-3">自动备份</h3>
+<p>直接基于jenkins提供的后置脚本功能即可，首先增加全局环境变量配置：GIT_API_TOKEN，其余参数可以为每个project进行配置。</p>
 
-<p>gitlab已经为我们提供了自动备份数据的解决方案，包括cron任务的管理、自动同步到第三方云存储（例如亚马逊AWS），具体参考：http://doc.gitlab.com/ce/raketasks/README.html
-当然你也可以用其他方式来备份数据，例如我们的git server位于虚拟化环境，那么可以定期完全备份整个虚机和磁盘，恢复起来也很简单的方便。</p>
+<p>shell代码如下：</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">curl -X POST <span class="se">\</span>
+--header <span class="s2">&quot;PRIVATE-TOKEN: $GIT_API_TOKEN&quot;</span> <span class="se">\</span>
+--data <span class="s2">&quot;tag_name=$Version&amp;ref=$Tag_Ref&amp;release_description=$Tag_Desc&quot;</span> <span class="se">\</span>
+http://code.gitlab.com/api/v3/projects/1/repository/tags</code></pre></figure>
+
+<p>完成以上配置，在每次部署成功后都会调用gitlab的api自动创建tag。</p>
 
         </div>
     </div>
@@ -152,10 +158,8 @@ sudo gitlab-ctl start</p>
 <nav class="pagination fn-clear" id="violet-paging">
     <div class="pagination-list">
         
-        <a class="prev" href="/life/2016/03/02/logic-mind-1.html" rel="bookmark"><i class="fa fa-chevron-circle-left"></i>罗辑思维观点解读（一）</a>
+        <a class="prev" href="/tech/2016/03/09/gitlab-backup.html" rel="bookmark"><i class="fa fa-chevron-circle-left"></i>如何对gitlab server进行备份和恢复</a>
         
-        
-        <a class="next" href="/tech/2016/05/31/invoke-gitlab-api.html" rel="bookmark">基于GitLab API实现自动化任务<i class="fa fa-chevron-circle-right"></i></a>
         
     </div>
 </nav>

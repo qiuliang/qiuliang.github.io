@@ -100,12 +100,12 @@
 
 <h2 id="jenkins-serverserverssh">首先需要建立jenkins server和目标server的ssh信任关系</h2>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">ssh-keygen -t <span class="o">[</span>rsa<span class="p">|</span>dsa<span class="o">]</span>
-ssh-copy-id -i ~/.ssh/id_rsa.pub user@your_ip_address</code></pre></div>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">ssh-keygen -t <span class="o">[</span>rsa<span class="p">|</span>dsa<span class="o">]</span>
+ssh-copy-id -i ~/.ssh/id_rsa.pub user@your_ip_address</code></pre></figure>
 
 <h2 id="section">编写重启脚本</h2>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#!/bin/bash</span>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#!/bin/bash</span>
 
 <span class="c"># author : qiuliang</span>
 <span class="c"># date : 2015-10-15</span>
@@ -140,13 +140,13 @@ mv <span class="nv">$war_name</span> <span class="nv">$app_context_path</span>.w
 <span class="c"># 重新启动tomcat</span>
 <span class="nb">export </span><span class="nv">JAVA_HOME</span><span class="o">=</span>/usr/local/jdk1.7.0_79
 <span class="nb">cd</span> <span class="nv">$app_tomcat_path</span>/bin/
-./startup.sh</code></pre></div>
+./startup.sh</code></pre></figure>
 
 <h2 id="jenkins-job">修改jenkins job配置</h2>
 
 <p>增加build post步骤，选择shell：</p>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">ssh 192.168.220.180 <span class="s1">&#39;bash -x -s&#39;</span> &lt; api/src/main/resources/ci/deploy_test.sh</code></pre></div>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">ssh 192.168.220.180 <span class="s1">&#39;bash -x -s&#39;</span> &lt; api/src/main/resources/ci/deploy_test.sh</code></pre></figure>
 
 <p>完成上述步骤后，执行job，如果最终显示SUCCESS，则大功告成。</p>
 
@@ -217,19 +217,6 @@ mv <span class="nv">$war_name</span> <span class="nv">$app_context_path</span>.w
             "background-image": "url(" + headImgArr[item] + ")"
         });
     </script>
-    
-        
-        <script type="text/javascript">
-            //disqus
-            var disqus_shortname = 'qiuliang';
-            (function() {
-                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-                dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
-                (document.getElementsByTagName('head')[0] ||
-                    document.getElementsByTagName('body')[0]).appendChild(dsq);
-            })();
-        </script>
-        
     
 </body>
 </html>

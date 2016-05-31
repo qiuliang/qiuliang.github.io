@@ -158,31 +158,31 @@
 
 <h4 id="section-2">1. 安装必须的依赖组件</h4>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">sudo yum install curl openssh-server postfix cronie
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">sudo yum install curl openssh-server postfix cronie
 sudo service postfix start
 sudo chkconfig postfix on
-sudo lokkit -s http -s ssh</code></pre></div>
+sudo lokkit -s http -s ssh</code></pre></figure>
 
 <h4 id="gitlab-rpm">2. 安装gitlab rpm包</h4>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.rpm.sh <span class="p">|</span> sudo bash
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.rpm.sh <span class="p">|</span> sudo bash
 sudo yum install gitlab-ce
-rpm -i gitlab-ce-XXX.rpm</code></pre></div>
+rpm -i gitlab-ce-XXX.rpm</code></pre></figure>
 
 <h4 id="gitlab-1">3. 启动gitlab</h4>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">sudo gitlab-ctl reconfigure</code></pre></div>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">sudo gitlab-ctl reconfigure</code></pre></figure>
 
 <h4 id="host">4. 访问host地址，使用默认的如下管理员账号可进行配置修改</h4>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">Username: root
-Password: 5iveL!fe</code></pre></div>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">Username: root
+Password: 5iveL!fe</code></pre></figure>
 
 <h2 id="mavennexus">maven私服（nexus）安装和配置</h2>
 
 <p>nexus的安装过程比较简单，从官网下载nexus压缩包后，直接解压到工作目录，执行如下命令即可：</p>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">./bin/nexus console</code></pre></div>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">./bin/nexus console</code></pre></figure>
 
 <h2 id="jenkins">jenkins安装和配置</h2>
 
@@ -204,14 +204,14 @@ jenkins version : 1.624</p>
 
 <p>安装相关包：</p>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">- sudo wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">- sudo wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
 - sudo rpm --import https://jenkins-ci.org/redhat/jenkins-ci.org.key
-- sudo yum install jenkins</code></pre></div>
+- sudo yum install jenkins</code></pre></figure>
 
 <p>启动服务：</p>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">- sudo service jenkins start/stop/restart
-- sudo chkconfig jenkins on</code></pre></div>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">- sudo service jenkins start/stop/restart
+- sudo chkconfig jenkins on</code></pre></figure>
 
 <p>jenkins web端默认为8080端口，请确认防火墙是否打开。</p>
 
@@ -249,9 +249,9 @@ jenkins version : 1.624</p>
   <li>编辑环境变量：vi /etc/profile</li>
 </ul>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">export </span><span class="nv">M2_HOME</span><span class="o">=</span>/usr/local/apache-maven-3.3.3
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">export </span><span class="nv">M2_HOME</span><span class="o">=</span>/usr/local/apache-maven-3.3.3
 <span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:<span class="nv">$JAVA_HOME</span>/bin:<span class="nv">$M2_HOME</span>/bin
-<span class="nb">export </span>PATH USER LOGNAME MAIL HOSTNAME HISTSIZE HISTCONTROL</code></pre></div>
+<span class="nb">export </span>PATH USER LOGNAME MAIL HOSTNAME HISTSIZE HISTCONTROL</code></pre></figure>
 
 <ul>
   <li>环境变量生效：source /etc/profile</li>
@@ -371,19 +371,6 @@ jenkins version : 1.624</p>
             "background-image": "url(" + headImgArr[item] + ")"
         });
     </script>
-    
-        
-        <script type="text/javascript">
-            //disqus
-            var disqus_shortname = 'qiuliang';
-            (function() {
-                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-                dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
-                (document.getElementsByTagName('head')[0] ||
-                    document.getElementsByTagName('body')[0]).appendChild(dsq);
-            })();
-        </script>
-        
     
 </body>
 </html>
