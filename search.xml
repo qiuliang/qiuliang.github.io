@@ -2,80 +2,140 @@
 <articles xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <article>
+	<title>基于GitLab API实现自动化任务</title>
+	<url>http://qiuliang.github.io/tech/2016/05/31/invoke-gitlab-api.html</url>
+	<date>2016-05-31</date>
+</article>
+
+<article>
+	<title>如何对gitlab server进行备份和恢复</title>
+	<url>http://qiuliang.github.io/tech/2016/03/09/gitlab-backup.html</url>
+	<date>2016-03-09</date>
+</article>
+
+<article>
+	<title>罗辑思维观点解读（一）</title>
+	<url>http://qiuliang.github.io/life/2016/03/02/logic-mind-1.html</url>
+	<date>2016-03-02</date>
+</article>
+
+<article>
+	<title>工作十年回顾：成长与平衡</title>
+	<url>http://qiuliang.github.io/life/2016/01/23/2015_summary.html</url>
+	<date>2016-01-23</date>
+</article>
+
+<article>
+	<title>【jenkins实战】利用shell实现远程重启tomcat</title>
+	<url>http://qiuliang.github.io/tech/2015/10/18/jenkins-shell-restart-tomcat.html</url>
+	<date>2015-10-18</date>
+</article>
+
+<article>
+	<title>基于git、maven、nexus、jenkins搭建适合中小型技术团队的CI平台</title>
+	<url>http://qiuliang.github.io/tech/2015/10/02/git-nexus-jenkins-ci.html</url>
+	<date>2015-10-02</date>
+</article>
+
+<article>
+	<title>git分支模型探讨</title>
+	<url>http://qiuliang.github.io/tech/2015/07/25/git-branch-module.html</url>
+	<date>2015-07-25</date>
+</article>
+
+<article>
+	<title>创新是这个世界的源动力 —《从0到1》</title>
+	<url>http://qiuliang.github.io/book/2015/07/18/zero-to-one.html</url>
+	<date>2015-07-18</date>
+</article>
+
+<article>
 	<title>Markdown资源分享</title>
-	<url>http://www.qiuliang.net/tool/2014/11/27/markdown-resource-share.html</url>
+	<url>http://qiuliang.github.io/tool/2014/11/27/markdown-resource-share.html</url>
 	<date>2014-11-27</date>
 </article>
 
 <article>
 	<title>天才们的思维盛筵，《上帝掷骰子吗--量子物理史话》</title>
-	<url>http://www.qiuliang.net/mind/2014/11/25/quantum-history.html</url>
+	<url>http://qiuliang.github.io/mind/2014/11/25/quantum-history.html</url>
 	<date>2014-11-25</date>
 </article>
 
 <article>
 	<title>文件存储系统映射模块原理解析</title>
-	<url>http://www.qiuliang.net/fastdfs/2014/11/19/file-storage-based-on-fastdfs.html</url>
+	<url>http://qiuliang.github.io/fastdfs/2014/11/19/file-storage-based-on-fastdfs.html</url>
 	<date>2014-11-19</date>
 </article>
 
 <article>
 	<title>git常用命令整理（一）</title>
-	<url>http://www.qiuliang.net/git/2014/11/04/git-used-to-command-1.html</url>
+	<url>http://qiuliang.github.io/git/2014/11/04/git-used-to-command-1.html</url>
 	<date>2014-11-04</date>
 </article>
 
 <article>
 	<title>碎片时间</title>
-	<url>http://www.qiuliang.net/mind/2014/11/04/how-to-use-fragmentary-time.html</url>
+	<url>http://qiuliang.github.io/mind/2014/11/04/how-to-use-fragmentary-time.html</url>
 	<date>2014-11-04</date>
 </article>
 
 <article>
 	<title>巴厘游记</title>
-	<url>http://www.qiuliang.net/life/2014/07/12/life-bali-trip.html</url>
+	<url>http://qiuliang.github.io/life/2014/07/12/life-bali-trip.html</url>
 	<date>2014-07-12</date>
 </article>
 
 <article>
 	<title>Spring MVC + Mybatis + MySQL CRUD Demo</title>
-	<url>http://www.qiuliang.net/java/2014/07/04/Spring%20MVC-Mybatis-MySQL-CRUD-Demo.html</url>
+	<url>http://qiuliang.github.io/java/2014/07/04/Spring-MVC-Mybatis-MySQL-CRUD-Demo.html</url>
 	<date>2014-07-04</date>
 </article>
 
 <article>
+	<title>2013，从激情到平静</title>
+	<url>http://qiuliang.github.io/life/2014/03/02/life-summary-2013.html</url>
+	<date>2014-03-02</date>
+</article>
+
+<article>
 	<title>使用Nginx结合Jekyll搭建静态博客</title>
-	<url>http://www.qiuliang.net/jekyll/2013/12/14/jekyll-with-nginx.html</url>
+	<url>http://qiuliang.github.io/jekyll/2013/12/14/jekyll-with-nginx.html</url>
 	<date>2013-12-14</date>
 </article>
 
 <article>
+	<title>ASP.NET MVC 4 小项目开发总结</title>
+	<url>http://qiuliang.github.io/asp.net/2013/12/13/aspnet-mvc4-project-summary.html</url>
+	<date>2013-12-13</date>
+</article>
+
+<article>
 	<title>【Ruby on Rails】学习使用generator</title>
-	<url>http://www.qiuliang.net/ruby/2013/12/13/ruby-on-rails-scaffold.html</url>
+	<url>http://qiuliang.github.io/ruby/2013/12/13/ruby-on-rails-scaffold.html</url>
 	<date>2013-12-13</date>
 </article>
 
 <article>
 	<title>【Ruby on Rails】切换数据库到MySQL</title>
-	<url>http://www.qiuliang.net/ruby/2013/12/13/ruby-change-db-to-mysql.html</url>
-	<date>2013-12-13</date>
-</article>
-
-<article>
-	<title>ASP.NET MVC 4 小项目开发总结</title>
-	<url>http://www.qiuliang.net/asp.net/2013/12/13/aspnet-mvc4-project-summary.html</url>
+	<url>http://qiuliang.github.io/ruby/2013/12/13/ruby-change-db-to-mysql.html</url>
 	<date>2013-12-13</date>
 </article>
 
 <article>
 	<title>【Ruby on Rails】Advanced Ruby String Tips</title>
-	<url>http://www.qiuliang.net/ruby/2013/12/13/advance-ruby-string-tips.html</url>
+	<url>http://qiuliang.github.io/ruby/2013/12/13/advance-ruby-string-tips.html</url>
 	<date>2013-12-13</date>
 </article>
 
 <article>
+	<title>技能树</title>
+	<url>http://qiuliang.github.io/resume/2012/03/20/tech-tree.html</url>
+	<date>2012-03-20</date>
+</article>
+
+<article>
 	<title>JavaScript中的this</title>
-	<url>http://www.qiuliang.net/javascript/2011/04/27/web-javascript-this.html</url>
+	<url>http://qiuliang.github.io/javascript/2011/04/27/web-javascript-this.html</url>
 	<date>2011-04-27</date>
 </article>
 

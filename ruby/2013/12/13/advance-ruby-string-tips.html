@@ -1,15 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <!--
-     **
-     * Author:         掌心
-     * Contact:        zhanxin.info@gmail.com
-     * Theme Name:     Violet ( Violet 主题代表着一种颜色，一种情感，还有一种美)
-     * Create Date:    2013.10
-     * Update:         2014.09
-     **
-    -->
+    
     <meta charset="utf-8" />
     <title>
         
@@ -22,18 +14,18 @@
     <meta name="keywords" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <!-- //页面样式 -->
-    <link rel="stylesheet" href="http://www.qiuliang.net/themes/violet/css/style.css" type="text/css" />
+    <link rel="stylesheet" href="http://qiuliang.github.io/themes/violet/css/style.css" type="text/css" />
     <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
     <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css" rel="stylesheet">
-    <link href='http://fonts.googleapis.com/css?family=Spirax' rel='stylesheet' type='text/css'>
-    <link rel="shortcut icon" href="http://www.qiuliang.net/themes/violet/images/favicon.ico" type="image/x-icon" />
+    <!--<link href='http://fonts.googleapis.com/css?family=Spirax' rel='stylesheet' type='text/css'>-->
+    <!--<link rel="shortcut icon" href="http://qiuliang.github.io/themes/violet/images/favicon.ico" type="image/x-icon" />-->
     <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
 </head>
 <body id="violet">
     <div class="page-wrapper">
         <section class="head" id="violet-head">
             <header class="header" id="violet-header">
-                <h1 class="logo"><a href="http://www.qiuliang.net">Qiuliang's Site</a></h1>
+                <h1 class="logo"><a href="http://qiuliang.github.io">Qiuliang's Site</a></h1>
                 <h2 class="subtitle">做一个独立思考和具备创新能力的人，打造谦逊和强大的内心</h2>
             </header>
             <nav class="nav" id="violet-nav">
@@ -88,77 +80,77 @@
         <div class="main-article-contant">
             <p><code>ord</code>将字符转换为ASCII编码</p>
 
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="sc">?B</span><span class="o">.</span><span class="n">ord</span>
-<span class="c1"># =&gt; 66</span></code></pre></div>
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="sc">?B</span><span class="o">.</span><span class="n">ord</span>
+<span class="c1"># =&gt; 66</span></code></pre></figure>
 
 <p><code>chr</code>将ASCII编码转换为字符</p>
 
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="mi">66</span><span class="o">.</span><span class="n">chr</span>
-<span class="c1"># =&gt; B</span></code></pre></div>
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="mi">66</span><span class="o">.</span><span class="n">chr</span>
+<span class="c1"># =&gt; B</span></code></pre></figure>
 
 <p><code>split</code>将字符串分割为数组</p>
 
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;I love Ruby Programming&quot;</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span><span class="err">：</span>
-<span class="c1"># =&gt; [&quot;I&quot;,&quot;love&quot;,&quot;Ruby&quot;,&quot;Programming&quot;]</span></code></pre></div>
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;I love Ruby Programming&quot;</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span><span class="err">：</span>
+<span class="c1"># =&gt; [&quot;I&quot;,&quot;love&quot;,&quot;Ruby&quot;,&quot;Programming&quot;]</span></code></pre></figure>
 
 <p><code>split</code>配合<code>uniq</code>后并去重</p>
 
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;aabbcc&quot;</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">uniq</span><span class="err">：</span>
-<span class="c1"># =&gt; [&quot;a&quot;,&quot;b&quot;,&quot;c&quot;]</span></code></pre></div>
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;aabbcc&quot;</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">uniq</span><span class="err">：</span>
+<span class="c1"># =&gt; [&quot;a&quot;,&quot;b&quot;,&quot;c&quot;]</span></code></pre></figure>
 
 <p>配合<code>sort</code>进行排序，按ASCII编码大小</p>
 
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;I love Ruby Programming&quot;</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">uniq</span><span class="o">.</span><span class="n">sort</span></code></pre></div>
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;I love Ruby Programming&quot;</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">uniq</span><span class="o">.</span><span class="n">sort</span></code></pre></figure>
 
 <p><code>scan</code>从字符串中查找匹配的字符，返回数组</p>
 
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;Everybody loves Ruby&quot;</span><span class="o">.</span><span class="n">scan</span><span class="p">(</span><span class="sr">/[a-m]/</span><span class="p">)</span>
-<span class="c1"># =&gt; [&quot;e&quot;, &quot;b&quot;, &quot;d&quot;, &quot;l&quot;, &quot;e&quot;, &quot;b&quot;]</span></code></pre></div>
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;Everybody loves Ruby&quot;</span><span class="o">.</span><span class="n">scan</span><span class="p">(</span><span class="sr">/[a-m]/</span><span class="p">)</span>
+<span class="c1"># =&gt; [&quot;e&quot;, &quot;b&quot;, &quot;d&quot;, &quot;l&quot;, &quot;e&quot;, &quot;b&quot;]</span></code></pre></figure>
 
 <p><code>gsub</code>该函数的作用是使用正则替换掉字符串中匹配的值。变量调用<code>gsub</code>方法后，变量本身不改变，如果需要改变，可在方法后加<code>!</code>。</p>
 
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">a</span> <span class="o">=</span> <span class="s2">&quot;test1&quot;</span><span class="p">;</span>
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">a</span> <span class="o">=</span> <span class="s2">&quot;test1&quot;</span><span class="p">;</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">gsub</span><span class="p">(</span><span class="sr">/\d+/</span><span class="p">,</span><span class="s1">&#39;a&#39;</span><span class="p">);</span>
 <span class="nb">print</span> <span class="n">a</span><span class="p">;</span>
 <span class="nb">print</span> <span class="n">b</span><span class="p">;</span>
 <span class="n">a</span><span class="o">.</span><span class="n">gsub!</span><span class="p">(</span><span class="sr">/\d+/</span><span class="p">,</span><span class="s1">&#39;b&#39;</span><span class="p">);</span>
 <span class="c1"># a =&gt; test1</span>
 <span class="c1"># b =&gt; testa</span>
-<span class="c1"># a =&gt; testb</span></code></pre></div>
+<span class="c1"># a =&gt; testb</span></code></pre></figure>
 
 <p>提取字符串中的数字，并乘以2后替换：</p>
 
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;I am 18 years old.&quot;</span><span class="o">.</span><span class="n">gsub</span><span class="p">(</span><span class="sr">/\d+/</span><span class="p">){</span><span class="mi">2</span><span class="o">*</span><span class="vg">$&amp;</span><span class="o">.</span><span class="n">to_i</span><span class="p">}</span>
-<span class="c1"># I am 36 years old.</span></code></pre></div>
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;I am 18 years old.&quot;</span><span class="o">.</span><span class="n">gsub</span><span class="p">(</span><span class="sr">/\d+/</span><span class="p">){</span><span class="mi">2</span><span class="o">*</span><span class="vg">$&amp;</span><span class="o">.</span><span class="n">to_i</span><span class="p">}</span>
+<span class="c1"># I am 36 years old.</span></code></pre></figure>
 
 <p>提取字符串中的单引号和双引号，加上斜杠后替换：</p>
 
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">str</span> <span class="o">=</span> <span class="sx">%q(Ruby said, &quot;Don&#39;t you like Ruby&quot;)</span><span class="p">;</span> <span class="n">str</span><span class="o">.</span><span class="n">gsub</span><span class="p">(</span><span class="sr">/[&#39;&quot;]/</span><span class="p">)</span> <span class="p">{</span><span class="s1">&#39;\\&#39;</span><span class="o">+</span><span class="vg">$&amp;</span><span class="p">}</span>
-<span class="c1"># Ruby said, \&quot;Don\&#39;t you like Ruby\&quot;</span></code></pre></div>
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">str</span> <span class="o">=</span> <span class="sx">%q(Ruby said, &quot;Don&#39;t you like Ruby&quot;)</span><span class="p">;</span> <span class="n">str</span><span class="o">.</span><span class="n">gsub</span><span class="p">(</span><span class="sr">/[&#39;&quot;]/</span><span class="p">)</span> <span class="p">{</span><span class="s1">&#39;\\&#39;</span><span class="o">+</span><span class="vg">$&amp;</span><span class="p">}</span>
+<span class="c1"># Ruby said, \&quot;Don\&#39;t you like Ruby\&quot;</span></code></pre></figure>
 
 <p>重复输出字符串N次：</p>
 
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;hello&quot;</span> <span class="o">*</span> <span class="mi">10</span><span class="p">;</span></code></pre></div>
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;hello&quot;</span> <span class="o">*</span> <span class="mi">10</span><span class="p">;</span></code></pre></figure>
 
 <p><code>capitalize</code>将字符串首字母大写：</p>
 
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;hello&quot;</span><span class="o">.</span><span class="n">capitalize</span>
-<span class="c1"># Hello</span></code></pre></div>
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;hello&quot;</span><span class="o">.</span><span class="n">capitalize</span>
+<span class="c1"># Hello</span></code></pre></figure>
 
 <p><code>chop</code>去掉末尾的一个字符：</p>
 
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;hello&quot;</span><span class="o">.</span><span class="n">chop</span>
-<span class="c1"># hell</span></code></pre></div>
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;hello&quot;</span><span class="o">.</span><span class="n">chop</span>
+<span class="c1"># hell</span></code></pre></figure>
 
 <p><code>next</code>将字符串末尾的一个字符替换为下一个字符，例如“a”替换为“b”，“1”替换为“2”，如果是非字母或数字的字符，则替换前一个。</p>
 
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;hello&quot;</span><span class="o">.</span><span class="n">next</span>
-<span class="c1"># hellp</span></code></pre></div>
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;hello&quot;</span><span class="o">.</span><span class="n">next</span>
+<span class="c1"># hellp</span></code></pre></figure>
 
 <p><code>swapcase</code>将字符串中的字母大小写反转替换。</p>
 
-<div class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;Hello&quot;</span><span class="o">.</span><span class="n">swapcase</span>
-<span class="c1"># hELLO</span></code></pre></div>
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="s2">&quot;Hello&quot;</span><span class="o">.</span><span class="n">swapcase</span>
+<span class="c1"># hELLO</span></code></pre></figure>
 
 
         </div>
@@ -167,15 +159,18 @@
 <nav class="pagination fn-clear" id="violet-paging">
     <div class="pagination-list">
         
+        <a class="prev" href="/resume/2012/03/20/tech-tree.html" rel="bookmark"><i class="fa fa-chevron-circle-left"></i>技能树</a>
         
-        <a class="next" href="/asp.net/2013/12/13/aspnet-mvc4-project-summary.html" rel="bookmark">ASP.NET MVC 4 小项目开发总结<i class="fa fa-chevron-circle-right"></i></a>
+        
+        <a class="next" href="/ruby/2013/12/13/ruby-change-db-to-mysql.html" rel="bookmark">【Ruby on Rails】切换数据库到MySQL<i class="fa fa-chevron-circle-right"></i></a>
         
     </div>
 </nav>
 <div class="comment">
     
         <div class="comment-cnt">
-            <div id="disqus_thread"></div>
+            
+
         </div>
     
 </div>
@@ -202,9 +197,9 @@
         </footer>
     </div>
 
-    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/jquery-1.8.3.js"></script>
-    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/jquery-scrollTo.js"></script>
-    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/common.js"></script>
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/jquery-1.8.3.js"></script>
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/jquery-scrollTo.js"></script>
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/common.js"></script>
     <script type="text/javascript">
         var headImgArr = [];
         
@@ -226,19 +221,6 @@
             "background-image": "url(" + headImgArr[item] + ")"
         });
     </script>
-    
-        
-        <script type="text/javascript">
-            //disqus
-            var disqus_shortname = 'qiuliang';
-            (function() {
-                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-                dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
-                (document.getElementsByTagName('head')[0] ||
-                    document.getElementsByTagName('body')[0]).appendChild(dsq);
-            })();
-        </script>
-        
     
 </body>
 </html>

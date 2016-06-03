@@ -3,4 +3,4 @@ Disallow: /css/
 Disallow: /js/
 Disallow: /works/
 
-Sitemap: http://www.qiuliang.net/sitemap.xml
+Sitemap: http://qiuliang.github.io/sitemap.xml

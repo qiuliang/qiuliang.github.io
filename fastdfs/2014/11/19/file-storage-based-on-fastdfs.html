@@ -1,15 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <!--
-     **
-     * Author:         掌心
-     * Contact:        zhanxin.info@gmail.com
-     * Theme Name:     Violet ( Violet 主题代表着一种颜色，一种情感，还有一种美)
-     * Create Date:    2013.10
-     * Update:         2014.09
-     **
-    -->
+    
     <meta charset="utf-8" />
     <title>
         
@@ -22,18 +14,18 @@
     <meta name="keywords" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <!-- //页面样式 -->
-    <link rel="stylesheet" href="http://www.qiuliang.net/themes/violet/css/style.css" type="text/css" />
+    <link rel="stylesheet" href="http://qiuliang.github.io/themes/violet/css/style.css" type="text/css" />
     <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
     <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css" rel="stylesheet">
     <!--<link href='http://fonts.googleapis.com/css?family=Spirax' rel='stylesheet' type='text/css'>-->
-    <link rel="shortcut icon" href="http://www.qiuliang.net/themes/violet/images/favicon.ico" type="image/x-icon" />
+    <!--<link rel="shortcut icon" href="http://qiuliang.github.io/themes/violet/images/favicon.ico" type="image/x-icon" />-->
     <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
 </head>
 <body id="violet">
     <div class="page-wrapper">
         <section class="head" id="violet-head">
             <header class="header" id="violet-header">
-                <h1 class="logo"><a href="http://www.qiuliang.net">Qiuliang's Site</a></h1>
+                <h1 class="logo"><a href="http://qiuliang.github.io">Qiuliang's Site</a></h1>
                 <h2 class="subtitle">做一个独立思考和具备创新能力的人，打造谦逊和强大的内心</h2>
             </header>
             <nav class="nav" id="violet-nav">
@@ -196,30 +188,30 @@
 
 <p><strong>转发规则1</strong></p>
 
-<div class="highlight"><pre><code class="language-nginx" data-lang="nginx"><span class="k">location</span> <span class="s">/group1/</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-nginx" data-lang="nginx"><span class="k">location</span> <span class="s">/group1/</span> <span class="p">{</span>
     <span class="kn">expires</span>      <span class="s">-1s</span><span class="p">;</span>
     <span class="kn">proxy_pass</span> <span class="s">http://fastdfs.server</span><span class="p">;</span>
     <span class="c1">#break;</span>
-<span class="p">}</span></code></pre></div>
+<span class="p">}</span></code></pre></figure>
 
 <p><strong>转发规则2</strong></p>
 
-<div class="highlight"><pre><code class="language-nginx" data-lang="nginx"><span class="k">location</span> <span class="s">/</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-nginx" data-lang="nginx"><span class="k">location</span> <span class="s">/</span> <span class="p">{</span>
     <span class="kn">expires</span>      <span class="s">-1s</span><span class="p">;</span>
     <span class="kn">proxy_set_header</span> <span class="s">Host</span> <span class="nv">$host</span><span class="p">;</span>
     <span class="kn">proxy_pass</span> <span class="s">http://efcproxy.server</span><span class="p">;</span>
     <span class="c1">#break;</span>
-<span class="p">}</span></code></pre></div>
+<span class="p">}</span></code></pre></figure>
 
 <p><strong>upstream配置</strong></p>
 
-<div class="highlight"><pre><code class="language-nginx" data-lang="nginx"><span class="k">upstream</span> <span class="s">efcproxy.server</span><span class="p">{</span>
+<figure class="highlight"><pre><code class="language-nginx" data-lang="nginx"><span class="k">upstream</span> <span class="s">efcproxy.server</span><span class="p">{</span>
 	<span class="kn">server</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">8080</span><span class="p">;</span> <span class="c1">#映射处理程序服务器地址</span>
 <span class="p">}</span>
 
 <span class="k">upstream</span> <span class="s">fastdfs.server</span><span class="p">{</span>
 	<span class="kn">server</span> <span class="n">192.168.14.153</span><span class="p">:</span><span class="mi">8080</span><span class="p">;</span> <span class="c1">#fastdfs storage地址</span>
-<span class="p">}</span></code></pre></div>
+<span class="p">}</span></code></pre></figure>
 
 <p>还是以上文中的请求示例：</p>
 
@@ -262,12 +254,15 @@
         <a class="prev" href="/git/2014/11/04/git-used-to-command-1.html" rel="bookmark"><i class="fa fa-chevron-circle-left"></i>git常用命令整理（一）</a>
         
         
+        <a class="next" href="/mind/2014/11/25/quantum-history.html" rel="bookmark">天才们的思维盛筵，《上帝掷骰子吗--量子物理史话》<i class="fa fa-chevron-circle-right"></i></a>
+        
     </div>
 </nav>
 <div class="comment">
     
         <div class="comment-cnt">
-            <div id="disqus_thread"></div>
+            
+
         </div>
     
 </div>
@@ -294,9 +289,9 @@
         </footer>
     </div>
 
-    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/jquery-1.8.3.js"></script>
-    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/jquery-scrollTo.js"></script>
-    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/common.js"></script>
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/jquery-1.8.3.js"></script>
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/jquery-scrollTo.js"></script>
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/common.js"></script>
     <script type="text/javascript">
         var headImgArr = [];
         
@@ -318,19 +313,6 @@
             "background-image": "url(" + headImgArr[item] + ")"
         });
     </script>
-    
-        
-        <script type="text/javascript">
-            //disqus
-            var disqus_shortname = 'qiuliang';
-            (function() {
-                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-                dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
-                (document.getElementsByTagName('head')[0] ||
-                    document.getElementsByTagName('body')[0]).appendChild(dsq);
-            })();
-        </script>
-        
     
 </body>
 </html>

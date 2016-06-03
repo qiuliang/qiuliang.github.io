@@ -1,98 +1,138 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-        <loc>http://www.qiuliang.net/</loc>
+        <loc>http://qiuliang.github.io/</loc>
         <priority>1.0</priority>
     </url>
     <url>
-        <loc>http://www.qiuliang.net/archives.html</loc>
+        <loc>http://qiuliang.github.io/archives.html</loc>
         <priority>0.6</priority>
     </url>
     <url>
-        <loc>http://www.qiuliang.net/plugins.html</loc>
+        <loc>http://qiuliang.github.io/plugins.html</loc>
         <priority>0.6</priority>
     </url>
     <url>
-        <loc>http://www.qiuliang.net/works.html</loc>
+        <loc>http://qiuliang.github.io/works.html</loc>
         <priority>0.6</priority>
     </url>
     <url>
-        <loc>http://www.qiuliang.net/contact.html</loc>
+        <loc>http://qiuliang.github.io/contact.html</loc>
         <priority>0.6</priority>
     </url>
     
     <url>
-        <loc>http://www.qiuliang.net/tool/2014/11/27/markdown-resource-share.html</loc>
+        <loc>http://qiuliang.github.io/tech/2016/05/31/invoke-gitlab-api.html</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.qiuliang.net/mind/2014/11/25/quantum-history.html</loc>
+        <loc>http://qiuliang.github.io/tech/2016/03/09/gitlab-backup.html</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.qiuliang.net/fastdfs/2014/11/19/file-storage-based-on-fastdfs.html</loc>
+        <loc>http://qiuliang.github.io/life/2016/03/02/logic-mind-1.html</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.qiuliang.net/git/2014/11/04/git-used-to-command-1.html</loc>
+        <loc>http://qiuliang.github.io/life/2016/01/23/2015_summary.html</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.qiuliang.net/mind/2014/11/04/how-to-use-fragmentary-time.html</loc>
+        <loc>http://qiuliang.github.io/tech/2015/10/18/jenkins-shell-restart-tomcat.html</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.qiuliang.net/life/2014/07/12/life-bali-trip.html</loc>
+        <loc>http://qiuliang.github.io/tech/2015/10/02/git-nexus-jenkins-ci.html</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.qiuliang.net/java/2014/07/04/Spring%20MVC-Mybatis-MySQL-CRUD-Demo.html</loc>
+        <loc>http://qiuliang.github.io/tech/2015/07/25/git-branch-module.html</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.qiuliang.net/life/2014/03/02/life-summary-2013.html</loc>
+        <loc>http://qiuliang.github.io/book/2015/07/18/zero-to-one.html</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.qiuliang.net/jekyll/2013/12/14/jekyll-with-nginx.html</loc>
+        <loc>http://qiuliang.github.io/tool/2014/11/27/markdown-resource-share.html</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.qiuliang.net/ruby/2013/12/13/ruby-on-rails-scaffold.html</loc>
+        <loc>http://qiuliang.github.io/mind/2014/11/25/quantum-history.html</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.qiuliang.net/ruby/2013/12/13/ruby-change-db-to-mysql.html</loc>
+        <loc>http://qiuliang.github.io/fastdfs/2014/11/19/file-storage-based-on-fastdfs.html</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.qiuliang.net/asp.net/2013/12/13/aspnet-mvc4-project-summary.html</loc>
+        <loc>http://qiuliang.github.io/git/2014/11/04/git-used-to-command-1.html</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.qiuliang.net/ruby/2013/12/13/advance-ruby-string-tips.html</loc>
+        <loc>http://qiuliang.github.io/mind/2014/11/04/how-to-use-fragmentary-time.html</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.qiuliang.net/resume/2012/03/20/tech-tree.html</loc>
+        <loc>http://qiuliang.github.io/life/2014/07/12/life-bali-trip.html</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.qiuliang.net/javascript/2011/04/27/web-javascript-this.html</loc>
+        <loc>http://qiuliang.github.io/java/2014/07/04/Spring-MVC-Mybatis-MySQL-CRUD-Demo.html</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>http://qiuliang.github.io/life/2014/03/02/life-summary-2013.html</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>http://qiuliang.github.io/jekyll/2013/12/14/jekyll-with-nginx.html</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>http://qiuliang.github.io/asp.net/2013/12/13/aspnet-mvc4-project-summary.html</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>http://qiuliang.github.io/ruby/2013/12/13/ruby-on-rails-scaffold.html</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>http://qiuliang.github.io/ruby/2013/12/13/ruby-change-db-to-mysql.html</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>http://qiuliang.github.io/ruby/2013/12/13/advance-ruby-string-tips.html</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>http://qiuliang.github.io/resume/2012/03/20/tech-tree.html</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>http://qiuliang.github.io/javascript/2011/04/27/web-javascript-this.html</loc>
         <priority>0.8</priority>
     </url>
     

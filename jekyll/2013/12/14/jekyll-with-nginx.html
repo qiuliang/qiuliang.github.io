@@ -1,15 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <!--
-     **
-     * Author:         掌心
-     * Contact:        zhanxin.info@gmail.com
-     * Theme Name:     Violet ( Violet 主题代表着一种颜色，一种情感，还有一种美)
-     * Create Date:    2013.10
-     * Update:         2014.09
-     **
-    -->
+    
     <meta charset="utf-8" />
     <title>
         
@@ -22,18 +14,18 @@
     <meta name="keywords" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <!-- //页面样式 -->
-    <link rel="stylesheet" href="http://www.qiuliang.net/themes/violet/css/style.css" type="text/css" />
+    <link rel="stylesheet" href="http://qiuliang.github.io/themes/violet/css/style.css" type="text/css" />
     <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
     <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css" rel="stylesheet">
-    <link href='http://fonts.googleapis.com/css?family=Spirax' rel='stylesheet' type='text/css'>
-    <link rel="shortcut icon" href="http://www.qiuliang.net/themes/violet/images/favicon.ico" type="image/x-icon" />
+    <!--<link href='http://fonts.googleapis.com/css?family=Spirax' rel='stylesheet' type='text/css'>-->
+    <!--<link rel="shortcut icon" href="http://qiuliang.github.io/themes/violet/images/favicon.ico" type="image/x-icon" />-->
     <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
 </head>
 <body id="violet">
     <div class="page-wrapper">
         <section class="head" id="violet-head">
             <header class="header" id="violet-header">
-                <h1 class="logo"><a href="http://www.qiuliang.net">Qiuliang's Site</a></h1>
+                <h1 class="logo"><a href="http://qiuliang.github.io">Qiuliang's Site</a></h1>
                 <h2 class="subtitle">做一个独立思考和具备创新能力的人，打造谦逊和强大的内心</h2>
             </header>
             <nav class="nav" id="violet-nav">
@@ -88,7 +80,7 @@
         <div class="main-article-contant">
             <p>简单介绍一下Jekyll，是一个采用Ruby开发的一个静态博客引擎，非常的轻量级和简洁，原生支持markdown语法，个人感觉也适用于wiki类应用。配合disquz插件或国内的友言等，也可实现评论功能。</p>
 
-<h2 id="section">环境准备</h2>
+<p>##环境准备</p>
 
 <ul>
   <li>单独的服务器或虚拟机或vps</li>
@@ -97,13 +89,13 @@
   <li>RubyGem</li>
 </ul>
 
-<h2 id="section-1"><strong>安装</strong></h2>
+<h2 id="section"><strong>安装</strong></h2>
 <p>执行如下的命令后，即可在服务器上运行一个jekyll站点，内部的WebServer采用Ruby的Webrick，默认端口为4000，可通过http://yourdomain:4000来进行浏览。</p>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">~ <span class="nv">$ </span>gem install jekyll
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">~ <span class="nv">$ </span>gem install jekyll
 ~ <span class="nv">$ </span>jekyll new jekyll_site
 ~ <span class="nv">$ </span><span class="nb">cd </span>jekyll_site
-~ <span class="nv">$ </span>jekyll serve</code></pre></div>
+~ <span class="nv">$ </span>jekyll serve</code></pre></figure>
 
 <p>因为Jekyll产生的都是静态html文件，因此也可采用其他WebServer，例如：Nginx、Apache等。</p>
 
@@ -113,9 +105,9 @@
 
 <p>![20131213160522.jpg](C:/Users/1/Desktop/20131213160522.jpg “”)</p>
 
-<h2 id="section-2"><strong>快速上手</strong></h2>
+<h2 id="section-1"><strong>快速上手</strong></h2>
 
-<h3 id="section-3">目录结构</h3>
+<h3 id="section-2">目录结构</h3>
 <p>在正式开始写博客之前，需要先了解一下Jekyll的基本目录结构。</p>
 
 <ul>
@@ -151,12 +143,12 @@
   </li>
 </ul>
 
-<h3 id="section-4">发布文章</h3>
+<h3 id="section-3">发布文章</h3>
 
 <p>只需把你的markdown源文件拷贝到_posts目录即可，也可结合git来进行管理。
 然后执行以下命令：（需要进入到Jekyll根目录下）</p>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">~ <span class="nv">$ </span>jekyll build</code></pre></div>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">~ <span class="nv">$ </span>jekyll build</code></pre></figure>
 
 <p>执行完后，会将markdown源文件转换为html文档。</p>
 
@@ -164,16 +156,16 @@
   <p>注意：需要在markdown源文件中添加jekyll头信息。并且markdown源文件的命令必须符合格式：2013-12-12-title</p>
 </blockquote>
 
-<div class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="nn">---</span>
+<figure class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="nn">---</span>
 <span class="l-Scalar-Plain">layout</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">post</span>
 <span class="l-Scalar-Plain">title</span><span class="p-Indicator">:</span>  <span class="s">&quot;Advanced</span><span class="nv"> </span><span class="s">Ruby</span><span class="nv"> </span><span class="s">String</span><span class="nv"> </span><span class="s">Tips&quot;</span>
 <span class="l-Scalar-Plain">date</span><span class="p-Indicator">:</span>   <span class="l-Scalar-Plain">2013-12-12 18:24:52</span>
 <span class="l-Scalar-Plain">categories</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">ruby</span>
-<span class="nn">---</span></code></pre></div>
+<span class="nn">---</span></code></pre></figure>
 
 <p>title即页面的title信息，categories即文件目录，用空格分开代表多级目录。上面的头信息可代表如下的url：<code>http://yourdomain/ruby/2013/12/12/title.html</code></p>
 
-<h2 id="section-5"><strong>参考</strong></h2>
+<h2 id="section-4"><strong>参考</strong></h2>
 
 <ul>
   <li><a href="http://www.jekyllrb.com/">官方网站</a></li>
@@ -187,17 +179,18 @@
 <nav class="pagination fn-clear" id="violet-paging">
     <div class="pagination-list">
         
-        <a class="prev" href="/ruby/2013/12/13/ruby-on-rails-scaffold.html" rel="bookmark"><i class="fa fa-chevron-circle-left"></i>【Ruby on Rails】学习使用generator</a>
+        <a class="prev" href="/asp.net/2013/12/13/aspnet-mvc4-project-summary.html" rel="bookmark"><i class="fa fa-chevron-circle-left"></i>ASP.NET MVC 4 小项目开发总结</a>
         
         
-        <a class="next" href="/java/2014/07/04/Spring%20MVC-Mybatis-MySQL-CRUD-Demo.html" rel="bookmark">Spring MVC + Mybatis +...<i class="fa fa-chevron-circle-right"></i></a>
+        <a class="next" href="/life/2014/03/02/life-summary-2013.html" rel="bookmark">2013，从激情到平静<i class="fa fa-chevron-circle-right"></i></a>
         
     </div>
 </nav>
 <div class="comment">
     
         <div class="comment-cnt">
-            <div id="disqus_thread"></div>
+            
+
         </div>
     
 </div>
@@ -224,9 +217,9 @@
         </footer>
     </div>
 
-    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/jquery-1.8.3.js"></script>
-    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/jquery-scrollTo.js"></script>
-    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/common.js"></script>
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/jquery-1.8.3.js"></script>
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/jquery-scrollTo.js"></script>
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/common.js"></script>
     <script type="text/javascript">
         var headImgArr = [];
         
@@ -248,19 +241,6 @@
             "background-image": "url(" + headImgArr[item] + ")"
         });
     </script>
-    
-        
-        <script type="text/javascript">
-            //disqus
-            var disqus_shortname = 'qiuliang';
-            (function() {
-                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-                dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
-                (document.getElementsByTagName('head')[0] ||
-                    document.getElementsByTagName('body')[0]).appendChild(dsq);
-            })();
-        </script>
-        
     
 </body>
 </html>

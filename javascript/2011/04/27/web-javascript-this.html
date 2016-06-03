@@ -1,15 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <!--
-     **
-     * Author:         掌心
-     * Contact:        zhanxin.info@gmail.com
-     * Theme Name:     Violet ( Violet 主题代表着一种颜色，一种情感，还有一种美)
-     * Create Date:    2013.10
-     * Update:         2014.09
-     **
-    -->
+    
     <meta charset="utf-8" />
     <title>
         
@@ -22,18 +14,18 @@
     <meta name="keywords" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <!-- //页面样式 -->
-    <link rel="stylesheet" href="http://www.qiuliang.net/themes/violet/css/style.css" type="text/css" />
+    <link rel="stylesheet" href="http://qiuliang.github.io/themes/violet/css/style.css" type="text/css" />
     <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
     <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css" rel="stylesheet">
     <!--<link href='http://fonts.googleapis.com/css?family=Spirax' rel='stylesheet' type='text/css'>-->
-    <!--<link rel="shortcut icon" href="http://www.qiuliang.net/themes/violet/images/favicon.ico" type="image/x-icon" />-->
+    <!--<link rel="shortcut icon" href="http://qiuliang.github.io/themes/violet/images/favicon.ico" type="image/x-icon" />-->
     <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
 </head>
 <body id="violet">
     <div class="page-wrapper">
         <section class="head" id="violet-head">
             <header class="header" id="violet-header">
-                <h1 class="logo"><a href="http://www.qiuliang.net">Qiuliang's Site</a></h1>
+                <h1 class="logo"><a href="http://qiuliang.github.io">Qiuliang's Site</a></h1>
                 <h2 class="subtitle">做一个独立思考和具备创新能力的人，打造谦逊和强大的内心</h2>
             </header>
             <nav class="nav" id="violet-nav">
@@ -92,7 +84,7 @@
 
 <p>如果是一个全局的function，则this相当于window对象，在function里定义的各种属性或者方法可以在function外部访问到，前提是这个function需要被调用。</p>
 
-<div class="highlight"><pre><code class="language-js" data-lang="js"><span class="o">&lt;</span><span class="nx">script</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text/javascript&quot;</span><span class="o">&gt;</span>
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="o">&lt;</span><span class="nx">script</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text/javascript&quot;</span><span class="o">&gt;</span>
         <span class="c1">//在function中使用this</span>
         <span class="kd">function</span> <span class="nx">a</span><span class="p">()</span> <span class="p">{</span>
             <span class="k">if</span> <span class="p">(</span><span class="k">this</span> <span class="o">==</span> <span class="nb">window</span><span class="p">)</span> <span class="p">{</span>
@@ -107,13 +99,13 @@
         <span class="nx">a</span><span class="p">();</span>    <span class="c1">//如果不调用a方法，则里面定义的属性会取不到</span>
        <span class="nx">alert</span><span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">fieldA</span><span class="p">);</span>
         <span class="nx">methodA</span><span class="p">();</span>     
-<span class="o">&lt;</span><span class="err">/script&gt;</span></code></pre></div>
+<span class="o">&lt;</span><span class="err">/script&gt;</span></code></pre></figure>
 
 <h3 id="demo-2">Demo 2</h3>
 
 <p>如果使用new的方式去实例化一个对象，则this不等于window对象，this指向function a的实例。</p>
 
-<div class="highlight"><pre><code class="language-js" data-lang="js"><span class="o">&lt;</span><span class="nx">script</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text/javascript&quot;</span><span class="o">&gt;</span>
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="o">&lt;</span><span class="nx">script</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text/javascript&quot;</span><span class="o">&gt;</span>
         <span class="c1">//在function中使用this之二</span>
         <span class="kd">function</span> <span class="nx">a</span><span class="p">()</span> <span class="p">{</span>
             <span class="k">if</span> <span class="p">(</span><span class="k">this</span> <span class="o">==</span> <span class="nb">window</span><span class="p">)</span> <span class="p">{</span>
@@ -127,13 +119,13 @@
         <span class="kd">var</span> <span class="nx">b</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">a</span><span class="p">();</span>
         <span class="nx">alert</span><span class="p">(</span><span class="nx">b</span><span class="p">.</span><span class="nx">fieldA</span><span class="p">);</span>
        
-    <span class="o">&lt;</span><span class="err">/script&gt;</span></code></pre></div>
+    <span class="o">&lt;</span><span class="err">/script&gt;</span></code></pre></figure>
 
 <h3 id="demo-3">Demo 3</h3>
 
 <p>使用prototype扩展方法可以使用this获取到源对象的实例，私有字段无法通过原型链获取</p>
 
-<div class="highlight"><pre><code class="language-js" data-lang="js"><span class="o">&lt;</span><span class="nx">script</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text/javascript&quot;</span><span class="o">&gt;</span>
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="o">&lt;</span><span class="nx">script</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text/javascript&quot;</span><span class="o">&gt;</span>
         <span class="c1">//在function中使用this之三</span>
         <span class="kd">function</span> <span class="nx">a</span><span class="p">()</span> <span class="p">{</span>
             <span class="k">this</span><span class="p">.</span><span class="nx">fieldA</span> <span class="o">=</span> <span class="s2">&quot;I&#39;m a field&quot;</span><span class="p">;</span>
@@ -146,12 +138,12 @@
         <span class="p">};</span>
         <span class="kd">var</span> <span class="nx">b</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">a</span><span class="p">();</span>
         <span class="nx">b</span><span class="p">.</span><span class="nx">ExtendMethod</span><span class="p">(</span><span class="s2">&quot;From prototype&quot;</span><span class="p">);</span>  
-    <span class="o">&lt;</span><span class="err">/script&gt;</span></code></pre></div>
+    <span class="o">&lt;</span><span class="err">/script&gt;</span></code></pre></figure>
 
 <h3 id="demo-4">Demo 4</h3>
 <p>不管是直接引用function，还是实例化一个function，其返回的闭包函数里的this都是指向window</p>
 
-<div class="highlight"><pre><code class="language-js" data-lang="js"><span class="o">&lt;</span><span class="nx">script</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text/javascript&quot;</span><span class="o">&gt;</span>
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="o">&lt;</span><span class="nx">script</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text/javascript&quot;</span><span class="o">&gt;</span>
         <span class="c1">//在function中使用this之四</span>
         <span class="kd">function</span> <span class="nx">a</span><span class="p">()</span> <span class="p">{</span>
             <span class="nx">alert</span><span class="p">(</span><span class="k">this</span> <span class="o">==</span> <span class="nb">window</span><span class="p">);</span>
@@ -167,23 +159,23 @@
         <span class="nx">b</span><span class="p">();</span>
         <span class="kd">var</span> <span class="nx">c</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">a</span><span class="p">();</span>
         <span class="nx">c</span><span class="p">();</span>
-    <span class="o">&lt;</span><span class="err">/script&gt;</span></code></pre></div>
+    <span class="o">&lt;</span><span class="err">/script&gt;</span></code></pre></figure>
 
 <h3 id="demo-5">Demo 5</h3>
 
 <p>在HTML中使用this，一般代表该元素本身</p>
 
-<div class="highlight"><pre><code class="language-js" data-lang="js"><span class="o">&lt;</span><span class="nx">div</span> <span class="nx">onclick</span><span class="o">=</span><span class="s2">&quot;test(this)&quot;</span> <span class="nx">id</span><span class="o">=</span><span class="s2">&quot;div&quot;</span><span class="o">&gt;</span><span class="nx">Click</span> <span class="nx">Me</span><span class="o">&lt;</span><span class="err">/div&gt;</span>
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="o">&lt;</span><span class="nx">div</span> <span class="nx">onclick</span><span class="o">=</span><span class="s2">&quot;test(this)&quot;</span> <span class="nx">id</span><span class="o">=</span><span class="s2">&quot;div&quot;</span><span class="o">&gt;</span><span class="nx">Click</span> <span class="nx">Me</span><span class="o">&lt;</span><span class="err">/div&gt;</span>
     <span class="o">&lt;</span><span class="nx">script</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text/javascript&quot;</span><span class="o">&gt;</span>
         <span class="kd">function</span> <span class="nx">test</span><span class="p">(</span><span class="nx">obj</span><span class="p">)</span> <span class="p">{</span>
             <span class="nx">alert</span><span class="p">(</span><span class="nx">obj</span><span class="p">);</span>
         <span class="p">}</span>
-    <span class="o">&lt;</span><span class="err">/script&gt;</span></code></pre></div>
+    <span class="o">&lt;</span><span class="err">/script&gt;</span></code></pre></figure>
 
 <h3 id="demo-6">Demo 6</h3>
 <p>在IE和火狐（Chrome）下注册事件，this分别指向window和元素本身</p>
 
-<div class="highlight"><pre><code class="language-js" data-lang="js"><span class="o">&lt;</span><span class="nx">div</span> <span class="nx">id</span><span class="o">=</span><span class="s2">&quot;div&quot;</span><span class="o">&gt;</span><span class="nx">Click</span> <span class="nx">Me</span><span class="o">&lt;</span><span class="err">/div&gt;</span>
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="o">&lt;</span><span class="nx">div</span> <span class="nx">id</span><span class="o">=</span><span class="s2">&quot;div&quot;</span><span class="o">&gt;</span><span class="nx">Click</span> <span class="nx">Me</span><span class="o">&lt;</span><span class="err">/div&gt;</span>
     <span class="o">&lt;</span><span class="nx">script</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text/javascript&quot;</span><span class="o">&gt;</span>      
         <span class="kd">var</span> <span class="nx">div</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;div&quot;</span><span class="p">);</span>
         <span class="k">if</span> <span class="p">(</span><span class="nx">div</span><span class="p">.</span><span class="nx">attachEvent</span><span class="p">)</span> <span class="p">{</span>
@@ -200,7 +192,7 @@
             <span class="nx">alert</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">target</span> <span class="o">==</span> <span class="k">this</span><span class="p">);</span>
             <span class="p">},</span> <span class="kc">false</span><span class="p">);</span>
         <span class="p">}</span>
-    <span class="o">&lt;</span><span class="err">/script&gt;</span></code></pre></div>
+    <span class="o">&lt;</span><span class="err">/script&gt;</span></code></pre></figure>
 
         </div>
     </div>
@@ -209,14 +201,15 @@
     <div class="pagination-list">
         
         
-        <a class="next" href="/ruby/2013/12/13/advance-ruby-string-tips.html" rel="bookmark">【Ruby on Rails】Advanced Ruby String...<i class="fa fa-chevron-circle-right"></i></a>
+        <a class="next" href="/resume/2012/03/20/tech-tree.html" rel="bookmark">技能树<i class="fa fa-chevron-circle-right"></i></a>
         
     </div>
 </nav>
 <div class="comment">
     
         <div class="comment-cnt">
-            <div id="disqus_thread"></div>
+            
+
         </div>
     
 </div>
@@ -243,9 +236,9 @@
         </footer>
     </div>
 
-    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/jquery-1.8.3.js"></script>
-    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/jquery-scrollTo.js"></script>
-    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/common.js"></script>
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/jquery-1.8.3.js"></script>
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/jquery-scrollTo.js"></script>
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/common.js"></script>
     <script type="text/javascript">
         var headImgArr = [];
         
@@ -267,19 +260,6 @@
             "background-image": "url(" + headImgArr[item] + ")"
         });
     </script>
-    
-        
-        <script type="text/javascript">
-            //disqus
-            var disqus_shortname = 'qiuliang';
-            (function() {
-                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-                dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
-                (document.getElementsByTagName('head')[0] ||
-                    document.getElementsByTagName('body')[0]).appendChild(dsq);
-            })();
-        </script>
-        
     
 </body>
 </html>

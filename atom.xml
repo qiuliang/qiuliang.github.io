@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
  
    <title>Qiuliang's Site</title>
-   <link href="http://www.qiuliang.net/atom.xml" rel="self" type="application/atom+xml"/>
-   <link href="http://www.qiuliang.net" rel="alternate" type="text/html" />
-   <updated>2015-07-25T13:14:48+08:00</updated>
-   <id>http://www.qiuliang.net</id>
+   <link href="http://qiuliang.github.io/atom.xml" rel="self" type="application/atom+xml"/>
+   <link href="http://qiuliang.github.io" rel="alternate" type="text/html" />
+   <updated>2016-06-03T09:59:52+08:00</updated>
+   <id>http://qiuliang.github.io</id>
    <author>
      <name></name>
      <email></email>
@@ -13,10 +13,607 @@
 
    
    <entry>
+     <title>基于GitLab API实现自动化任务</title>
+     <link href="http://qiuliang.github.io/tech/2016/05/31/invoke-gitlab-api.html"/>
+     <updated>2016-05-31T00:00:00+08:00</updated>
+     <id>http://qiuliang.github.io/tech/2016/05/31/invoke-gitlab-api</id>
+     <content type="html">&lt;h2 id=&quot;section&quot;&gt;背景&lt;/h2&gt;
+
+&lt;p&gt;之前在团队里&lt;a href=&quot;/tech/2015/10/02/git-nexus-jenkins-ci.html&quot;&gt;基于git、maven、nexus、jenkins搭建适合中小型技术团队的CI平台&lt;/a&gt;，这套系统运行近一年，整体来说还是比较稳定可靠，使用起来也比较方便，基本解决了中小规模团队的CI需求。&lt;/p&gt;
+
+&lt;p&gt;但有个功能一直未完善，使用起来略有不便，就是自动打tag，因我们的build和部署是采用了两套jenkins去实现，而在部署环节的jenkins，是不需要和git交互的，因此也不方便使用类似：&lt;code&gt;git tag&lt;/code&gt; 这样的命令去完成自动打tag的功能。&lt;/p&gt;
+
+&lt;p&gt;因此首先想到的解决方案便是在部署机上通过插件或CURL等方式去调用gitlab的一个api，这样应该能够解决这个问题。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;实现&lt;/h2&gt;
+
+&lt;p&gt;研究了下gitlab的官方文档，发现确实有提供相关API来进行tag的创建，除此之外，还提供了很多其他API，足够你实现很多方便的功能。&lt;/p&gt;
+
+&lt;h3 id=&quot;section-2&quot;&gt;授权&lt;/h3&gt;
+
+&lt;p&gt;调用api都需要使用一个gitlab账号的private token，每个git账号都有不同的private token，查看方法：
+登录gitlab，进入Profile Setting — Account，可以看到如下界面：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/2016/gitlab-token.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;这个token可以通过header或者query string方式加到调用请求里。&lt;/p&gt;
+
+&lt;h3 id=&quot;api&quot;&gt;调用API&lt;/h3&gt;
+
+&lt;p&gt;以创建tag为例，其api形式如下：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;POST /projects/:id/repository/tags&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;其中参数id可以通过另一接口获取：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;GET /projects&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;传入必须的参数后，gitlab会返回类似于如下的消息，则说明创建tag成功：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;s2&quot;&gt;&amp;quot;name&amp;quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&amp;quot;test&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;s2&quot;&gt;&amp;quot;message&amp;quot;&lt;/span&gt;: null,
+  &lt;span class=&quot;s2&quot;&gt;&amp;quot;commit&amp;quot;&lt;/span&gt;: &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;s2&quot;&gt;&amp;quot;id&amp;quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&amp;quot;7cdbfcf12de62dae7fef5ad7eac6b41ab6d04ad9&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&amp;quot;message&amp;quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&amp;quot;Merge branch &amp;#39;weixin&amp;#39; into develop\n&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&amp;quot;parent_ids&amp;quot;&lt;/span&gt;: &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;
+      &lt;span class=&quot;s2&quot;&gt;&amp;quot;82e05eb5e681f46810b6e113140bc8577ee0ec64&amp;quot;&lt;/span&gt;,
+      &lt;span class=&quot;s2&quot;&gt;&amp;quot;bb2c9646608196eaf4fb5b9b39b5f74bfd9df9b1&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&amp;quot;authored_date&amp;quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&amp;quot;2016-05-30T18:06:53.000+08:00&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&amp;quot;author_name&amp;quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&amp;quot;test&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&amp;quot;author_email&amp;quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&amp;quot;qiuliang@sohochina.com&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&amp;quot;committed_date&amp;quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&amp;quot;2016-05-30T18:06:53.000+08:00&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&amp;quot;committer_name&amp;quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&amp;quot;test&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;s2&quot;&gt;&amp;quot;committer_email&amp;quot;&lt;/span&gt;: &lt;span class=&quot;s2&quot;&gt;&amp;quot;qiuliang@sohochina.com&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;,
+  &lt;span class=&quot;s2&quot;&gt;&amp;quot;release&amp;quot;&lt;/span&gt;: null
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h3 id=&quot;api-1&quot;&gt;部署成功后调用api&lt;/h3&gt;
+
+&lt;p&gt;直接基于jenkins提供的后置脚本功能即可，首先增加全局环境变量配置：GIT_API_TOKEN，其余参数可以为每个project进行配置。&lt;/p&gt;
+
+&lt;p&gt;shell代码如下：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;curl -X POST &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+--header &lt;span class=&quot;s2&quot;&gt;&amp;quot;PRIVATE-TOKEN: $GIT_API_TOKEN&amp;quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+--data &lt;span class=&quot;s2&quot;&gt;&amp;quot;tag_name=$Version&amp;amp;ref=$Tag_Ref&amp;amp;release_description=$Tag_Desc&amp;quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+http://code.gitlab.com/api/v3/projects/1/repository/tags&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;完成以上配置，在每次部署成功后都会调用gitlab的api自动创建tag。&lt;/p&gt;
+</content>
+   </entry>
+   
+   <entry>
+     <title>如何对gitlab server进行备份和恢复</title>
+     <link href="http://qiuliang.github.io/tech/2016/03/09/gitlab-backup.html"/>
+     <updated>2016-03-09T00:00:00+08:00</updated>
+     <id>http://qiuliang.github.io/tech/2016/03/09/gitlab-backup</id>
+     <content type="html">&lt;blockquote&gt;
+  &lt;p&gt;基于gitlab社区版8.5.4&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;section&quot;&gt;创建一个备份&lt;/h2&gt;
+&lt;p&gt;gitlab为我们提供了一些方法来创建一个完整的备份，该备份文件是一个压缩包，名称类似于：&lt;code&gt;[Timestamp]_gitlab_backup.tar&lt;/code&gt; 该备份文件包含了所有的DB数据、仓库文件、以及用户上传的一些附件。&lt;/p&gt;
+
+&lt;p&gt;进行一次备份：
+sudo gitlab-rake gitlab:backup:create&lt;/p&gt;
+
+&lt;p&gt;最终如果出现如下提示信息，则代表备份成功。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/gitlab-backup.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;备份文件默认保存在如下目录：/var/opt/gitlab/backups，可通过编辑 /var/opt/gitlab/gitlab-rails/etc/gitlab.yml文件的Backup Settings节进行修改。&lt;/p&gt;
+
+&lt;h3 id=&quot;section-1&quot;&gt;备份配置文件&lt;/h3&gt;
+
+&lt;p&gt;db的授权文件和两步验证所需要的密钥信息存储在/etc/gitlab/gitlab-secrets.json文件中，需要单独备份。
+gitlab.yml文件也不会包含在上面的备份文件中。&lt;/p&gt;
+
+&lt;h2 id=&quot;gitlab&quot;&gt;恢复gitlab&lt;/h2&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;按照官方文档的要求，只能还原备份文件到同一版本的gitlab系统中。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;先搭建一个同版本的gitlab到另外一台主机上。（具体安装步骤请参考官方文档）&lt;/p&gt;
+
+&lt;p&gt;环境准备完成后，执行如下命令：
+1，拷贝备份文件到新的主机上。
+2，停止相关服务
+sudo gitlab-ctl stop unicorn
+sudo gitlab-ctl stop sidekiq
+3，还原数据
+gitlab-rake gitlab:backup:restore BACKUP=1457505197
+4，启动
+sudo gitlab-ctl start&lt;/p&gt;
+
+&lt;p&gt;做完上述操作后，查看系统数据都已经恢复，包括仓库、用户、分组等。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;配置文件和secret文件的恢复需要手工操作。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;section-2&quot;&gt;其他实践&lt;/h2&gt;
+
+&lt;h3 id=&quot;git-data&quot;&gt;更改git data目录&lt;/h3&gt;
+
+&lt;p&gt;为了保证数据的安全，一般我们会考虑把git的数据目录放到其他共享存储中，比如：NAS、Virtual SAN等，这时就需要我们修改gitlab中默认的data文件存储路径。&lt;/p&gt;
+
+&lt;p&gt;1，修改gitlab.rb文件中的 git-data-dir参数
+2，gitlab-ctl reconfigure
+3，gitlab-ctl start&lt;/p&gt;
+
+&lt;h3 id=&quot;section-3&quot;&gt;自动备份&lt;/h3&gt;
+
+&lt;p&gt;gitlab已经为我们提供了自动备份数据的解决方案，包括cron任务的管理、自动同步到第三方云存储（例如亚马逊AWS），具体参考：http://doc.gitlab.com/ce/raketasks/README.html
+当然你也可以用其他方式来备份数据，例如我们的git server位于虚拟化环境，那么可以定期完全备份整个虚机和磁盘，恢复起来也很简单的方便。&lt;/p&gt;
+</content>
+   </entry>
+   
+   <entry>
+     <title>罗辑思维观点解读（一）</title>
+     <link href="http://qiuliang.github.io/life/2016/03/02/logic-mind-1.html"/>
+     <updated>2016-03-02T00:00:00+08:00</updated>
+     <id>http://qiuliang.github.io/life/2016/03/02/logic-mind-1</id>
+     <content type="html">&lt;p&gt;&lt;img src=&quot;/images/blog/yinhexi.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;以下文字皆源于上班路上听到的罗辑思维节目，节选了一些个人认为对自己有一些启发的观点或知识，整理和思考后分享出来。&lt;/p&gt;
+
+&lt;h2 id=&quot;section&quot;&gt;关于末日和对生命的态度&lt;/h2&gt;
+
+&lt;p&gt;世界是否真的存在末日？这个问题相信没有谁能从技术角度回答。但罗辑思维这期主要想要表达的是一种对生命的态度。
+生命必然会走向一个终点，可很多现代人似乎忘记了这一点，在有限的生命里，去浪费大把的时光，甚至对生命不再持敬畏之心，如行尸走肉一般。
+人之将死，其言也善。这在很多历史人物上得到了印证，可见在“末日”真的到来时，人心终将回归最为纯净的一面，不管之前做了多大的恶。与其这样，不如怀着一颗向死而生的心，认真生活，让生命更有意义和丰富多彩。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;见识决定命运？拒绝逃离北上广&lt;/h2&gt;
+
+&lt;p&gt;所谓见识，只是一个通俗易懂的说法，在现代这个信息爆炸的年代，通过互联网你几乎能了解到人类所有的信息，不管是科技还是经济、政治，这似乎说明，不一定要生活在大城市，你才能拥有“见识”，通过其他渠道你还是能获得这些信息。
+但“1/8秒延迟理论”却说明，直接的、面对面的连接，效果一定好于通过电波的连接，只有在这些大量的真实连接的场景下，你才会有更多的机会。
+大城市因为各种各样的原因，成为人口最容易聚集的地方，而人口的聚集效应又为创造财富提供好的环境和大量的机会。
+因此基于以上简单但有力的结论，推断出至少在未来几十年时间里，一线城市规模还会不断放大，甚至达到上亿级别的超级城市。或许等到人类科技和文明进化到一个更高的台阶的时候，我们才能去过上那种田园诗歌的生活。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-2&quot;&gt;中国未来经济走势&lt;/h2&gt;
+&lt;p&gt;这个话题太大，以个人现在的眼界见识，不足以做出一些有价值的总结，但效仿和学习却是可以的。简单来说，前三十年的我们难以想象现在的情景，未来三十年似乎没有理由不变得更好，我们已经走完了基本物质需求经济的时代，新的经济板块需要时代的前瞻者创造出来，这将有着无限多的机会，我们需要时刻准备着。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-3&quot;&gt;互联网时代的隐私&lt;/h2&gt;
+&lt;p&gt;关于这个话题，个人在前段时间也有过一些思考并且得出的结论是：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;在当下的互联网时代，基本没有隐私可言，除非你做一个与世隔绝的隐士。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;当然这个没有隐私是相对的，并不是说你的邻居、同事或周围的陌生人对你的一切了如指掌，而是指我们的隐私对于大的互联网公司、银行、国家机构等来说的，他们要获取你的信息非常容易，电商购物记录、家庭/公司地址、朋友圈、银行/保险账户、航空/铁路售票记录、酒店check in记录、遍布各地的摄像头。。，实在是太多了，通过一个身份证号或手机号，就能很容易的勾勒出一个人的大致画像，包括你的年龄、性别、姓名、家庭成员、公司、收入情况等等，想想是不是很可怕？&lt;/p&gt;
+
+&lt;p&gt;其实不然，这恰恰是社会文明进步的一种必然结果，所有的这些其实都是一个人的信用记录，一个人如果打算去做一件违法或者违反道德的事情，就不得不仔细掂量掂量，自己有没有这个能力能把所有的一切都能处理的干干净净？有了不良信用记录之后，他以后还想不想混了，只要他还不打算和社会失去连接，那就不得不去接受这个大信用体系框架带来的惩罚。而这个后果往往是很严重的，虽然现在国内的社会信用评价体系还处在起步阶段，不够健全和完善，但随着时间的推移，终将会成为现实，所以当下我们的生活法则也许要变成：&lt;strong&gt;事无不可对人言&lt;/strong&gt;。&lt;/p&gt;
+</content>
+   </entry>
+   
+   <entry>
+     <title>工作十年回顾：成长与平衡</title>
+     <link href="http://qiuliang.github.io/life/2016/01/23/2015_summary.html"/>
+     <updated>2016-01-23T00:00:00+08:00</updated>
+     <id>http://qiuliang.github.io/life/2016/01/23/2015_summary</id>
+     <content type="html">&lt;p&gt;&lt;img src=&quot;/images/blog/xingkong.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;时间总是在我们毫不知情的情况下偷偷溜掉，不禁黯然神伤，在年末的时候能沉下心来花点时间梳理、思考，并能给自己这一年通过文字留下点什么，或许是件然并卵的事情，但起码会得到一点点心理的慰藉，这就够了。&lt;/p&gt;
+
+&lt;h2 id=&quot;section&quot;&gt;2015一些重要的数字&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;看完和正在看的书：9本（数字参考于豆瓣我读）&lt;/li&gt;
+  &lt;li&gt;发表的博文：5（个人博客）&lt;/li&gt;
+  &lt;li&gt;跑步公里数：53Km/11次（咕咚运动）&lt;/li&gt;
+  &lt;li&gt;陪伴孩子：基本每个周末都会陪伴&lt;/li&gt;
+  &lt;li&gt;陪伴父母：1次&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;一年过完，在这些不能带来经济价值，却又很重要的事情上，究竟花了多少时间。
+显然除了陪孩子以外，其他数字少得可怜，先留在这里，等未来的某一天看到，并能起到如我所期望那样的一些作用。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;工作10年回顾&lt;/h2&gt;
+
+&lt;p&gt;这是一个有点伤感，又有点让人自豪的事情，工作已10年光景，人生中最热血、宝贵的青春投入到了一个叫“工作”的伟大事业中去，可工作究竟是什么，为什么要工作？在这样的一个阶段，我想停下来仔细思考一番，并以下面的几个问题来回顾总结一下我的第一个十年。&lt;/p&gt;
+
+&lt;h3 id=&quot;section-2&quot;&gt;工作的终极目的是什么？&lt;/h3&gt;
+
+&lt;p&gt;对绝大部分普通人来说，工作和上班其实是画等号的，工作的意义也很简单，通俗一点就是养家糊口。于我而言，前十年的工作也基本是这样一种状态，每天上下班，每月领工资，在工作上的投入程度也跟收获基本成正比，因为有一份工作，让我在亲朋好友眼中看起来是一个正常的人，结婚、生子、买房等等，所有这些“工作”都功不可没，看起来似乎还不错，是吗？&lt;/p&gt;
+
+&lt;p&gt;前几天看了一些有关远程工作社区的分享，感触颇深，其中一个重要的观点就是：上班 ≠ 工作。深以为是，上班其实是一种被动的状态，多少有些无奈的感觉在里面，而工作更多的是一种积极的状态，工作代表着专业、专注，工作的时候你会全情投入，而上班却未必。看似矛盾，却又高度统一，当我感觉自己是在上班的时候，就会去想每天这么做的目的究竟是什么？如果感觉是在工作呢，就会心无旁骛，当完成目标的时候心里盛满了幸福感和满足感。这样的状态是最理想的状态，可人终归有七情六欲、喜怒哀乐，不会总是处于最理想的状态，少量的“上班”而不是“工作”也无可厚非，只是你自己要承担这样的后果罢了。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;作为某个社会分工领域专业的人，达成目标，并由此带来内心的愉悦和物质上的收获。这是我在2015年的答案，将来或许会有新的思考。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;section-3&quot;&gt;如何平衡工作和生活？&lt;/h3&gt;
+
+&lt;p&gt;除了工作，剩下的就是你的生活。你是一个什么样的人，你的生活就是什么样的。但工作却不一定，或多或少都会去扮演职场上的自己。在不同的角色之间切换，保持自律和规律的生活是一个比较有效的平衡方式。周一到周五，固定的时间起床、吃饭、上班、睡觉，周末相对自由随性一些。这样的好处就是当你面对每天的工作时，不会因为一些其他事情而影响到你，工作效率和质量始终是稳定的，周末放松一下，陪陪孩子家人，工作暂时放在一边，也能得到比较好的休息。&lt;/p&gt;
+
+&lt;p&gt;坏处就是平时的生活会变得单调和匆忙，而空闲的时间如果没有用来做一些提升自己的事情，也会有一些失落和焦虑感。解决这些问题的方法自然也是有的，很认同去年朋友圈里转发比较多的一篇文章，大意是生活需要一些&lt;strong&gt;仪式感&lt;/strong&gt;，每个人都应该保持一些认真、庄重的生活态度。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;我向来觉得生活是需要一些仪式感的，这跟矫情无关，而是关于你对生活的热爱，对幸福的敏感，乃至有时候它是一种结束，也是一种开始。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;一个人也要认真的吃饭喝茶，遇到节日纪念日，更是要花点心思庆祝一番，这是我们对生活的一种热爱，在我们每天单调和匆忙的工作中，加入一些生活的情趣和仪式感，就好像我们在吃面条的时候，加一点喜爱的辣酱，回味无穷。&lt;/p&gt;
+
+&lt;p&gt;每个生活在大都市的普通人，都会有一些焦虑感，时时刻刻都在想着挑战自己，做更好的、更成功的自己，可社会就是这样，成功者只是少数，大多数人都如同你我一样平凡，我们成不了马云、马化腾，也成不了罗永浩、罗玉凤，那就还是降低自己的要求和欲望，做一个普通人或是旁观者，也没什么不好。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;慢生活（英语：Downshifting），又称 慢活，是一种社会行为或趋势，其倡导人们摆脱对物质疯狂的迷恋，重过简单的生活，并减少“压力，加班，和可能伴随着它的心理代价”[1]。它强调在日常生活中寻找工作与生活的平衡[2]，并专注于个人价值的实现，和建立人际关系的人生目标，而不是纯粹为了消费而追求经济成功。 –维基百科&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;section-4&quot;&gt;需要成长为一个什么样的技术人？&lt;/h3&gt;
+
+&lt;p&gt;从事技术工作（软件开发领域）这么长的时间，很庆幸自己还保持着对技术、科技的热情，相信很多同行朋友也是一样的感觉，但技术的发展却又是日新月异，这对我们的学习能力形成巨大的挑战，以下我总结了一些学习新技术的方法或是思考：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;一门新语言远没有你想象的困难，一天或是一周也许就够了&lt;/li&gt;
+  &lt;li&gt;技术生态圈很重要，学会语言不代表你了解相关生态圈&lt;/li&gt;
+  &lt;li&gt;官网文档是最权威的资料，需要最先看&lt;/li&gt;
+  &lt;li&gt;github作为全球最大同性（chengxuyuan）交友社区，自然不容错过&lt;/li&gt;
+  &lt;li&gt;不要给自己设限，写java的也可以写python，写go的也可以写js，工程师也可以懂产品和体验，相信人的潜力无穷&lt;/li&gt;
+  &lt;li&gt;不可替代性是职场重要法则，无关技术，却又依托技术&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;当然还有很多有益的经验教条，就不一一复述，这个话题如果展开，估计可以写成几个系列，先给自己埋个坑以后再填。&lt;/p&gt;
+
+&lt;p&gt;那究竟要成长为一个什么样的技术人？&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;在某几个领域有扎实的基本功&lt;/li&gt;
+  &lt;li&gt;保持对技术的热情，具备随时挽起袖子上战场的能力和魄力&lt;/li&gt;
+  &lt;li&gt;定期的算法/数据结构训练，保持这方面的感觉&lt;/li&gt;
+  &lt;li&gt;T字形知识结构&lt;/li&gt;
+  &lt;li&gt;除了技术，要关注产品、经济和文化&lt;/li&gt;
+  &lt;li&gt;正确的引导新人，乐意看到新人快速成长&lt;/li&gt;
+  &lt;li&gt;在团队里具备技术影响力&lt;/li&gt;
+  &lt;li&gt;训练你的沟通能力，再进化到现场演讲能力&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;虽然自己认识到这么多，可还远没达到这个层次，除了修炼，无他。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;这十年我对工作的认知，肤浅也好深刻也罢，都只是自我的一些思考。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;section-5&quot;&gt;阅读&lt;/h2&gt;
+
+&lt;p&gt;传统意义上的阅读，我还是更偏爱纸质书，即使在现在电子媒体如此发达的今天，2015年看的书不多，寥寥几本，印象比较深刻的如《从0到1》、《万万没想到》、《文明之光》，领域涵盖创业、思维和人文历史，也是个人比较感兴趣的几个方面。&lt;/p&gt;
+
+&lt;p&gt;《万万没想到》算是一本比较另类的书，作者以一个科学家的严谨，用了大量的数据和实验来说明，很多我们习以为常的事情、常识，往往都是错误的，在面对任何一件事情或现象的时候，不要用所谓的常识和固有的经验来禁锢你的思想，也许你是对的，谁又知道呢？&lt;/p&gt;
+
+&lt;p&gt;在下半年的时候为了解决开车途中的无聊，开始大量的听两档脱口秀节目，《晓松奇谈》和《逻辑思维》，虽然都是靠听的，但我认为这也属于阅读的一种，毕竟上下班路上将近3小时的时间里，是可以听很多东西的，这两档节目的内容个人认为还是有一些干货和深度，对我们还是有一些帮助。&lt;/p&gt;
+
+&lt;p&gt;正如逻辑思维2015跨年演讲中提到的，在这个信息大爆炸的时代，看似欣欣向荣、繁花似锦的互联网媒体、自媒体，真正能带给我们有价值的东西，或者说接近于这个世界真相的东西，却是少之又少，或者说是信息噪音干扰太大，我们迷失在一个多维的信息空间，却找不到通往外部的出口。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;通过阅读优质的书本和文章，是我们了解这个复杂世界最重要的方法。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;section-6&quot;&gt;停用微信朋友圈的思考&lt;/h2&gt;
+
+&lt;p&gt;从十月底到现在为止，停刷微信朋友圈近三个月，除了确实因为太忙这个理由，我也想试试，生活会有什么变化。
+其实是没什么变化。&lt;/p&gt;
+
+&lt;p&gt;失去了什么？&lt;/p&gt;
+
+&lt;p&gt;最近这一个月里，我错过了各位亲朋好友、同学同事、邻居、朋友的朋友、熟悉或不熟悉的人，你们的每一次分享，每一个动态。让人羡慕的旅行、萌宝、美食、美颜照。还错过了各种鸡汤、好笑或不好笑的段子、新闻、谣言、行业干货湿货。丰富多彩、五花八门，有如这冬日里的鸳鸯火锅。然而这些并没有什么用，有价值的信息很少能从朋友圈获取到，但少了跟好友们的互动，还是觉得缺了点什么。&lt;/p&gt;
+
+&lt;p&gt;有失必有得，停刷朋友圈（不是完全不看，是可以集中某个时间段快速、整体的去看）带来的好处也是显而易见的，不会占用我们的一些碎片时间，工作和生活会更加专注，对于一些真正的朋友，面对面或一对一的交流似乎是更有效和更能巩固关系的方式。对于真正想联系的朋友，少点几个赞完全不会影响我们的关系，不是吗？我们自然会通过见面、微信QQ、电话这些方式来建立彼此的联系，这种方式不是更好么。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-7&quot;&gt;继续前行&lt;/h2&gt;
+
+&lt;p&gt;2016年已经开始，太多的展望并没有什么作用，坚持和踏实依然是我目前认为最简单有效的生活态度和工作方式，做好当下的自己，确保在写完这篇3000多字的总结后，在马上要进入到35岁这个以前觉得很遥远年纪的时候；在面对未来人类进入到更高效科技更发达的时候；在少数精英洞悉这个社会商业法则而大多数人还懵懵懂懂的时候，活得更明白、更滋润一些。&lt;/p&gt;
+
+&lt;h3 id=&quot;section-8&quot;&gt;题图&lt;/h3&gt;
+
+&lt;p&gt;《星夜》文森特.梵高于1889年作于法国。色彩斑斓的颜色对比，流泻、粗狂的画作手法，产生了强烈的星空流动的感觉，展现出非凡的生命力。&lt;/p&gt;
+</content>
+   </entry>
+   
+   <entry>
+     <title>【jenkins实战】利用shell实现远程重启tomcat</title>
+     <link href="http://qiuliang.github.io/tech/2015/10/18/jenkins-shell-restart-tomcat.html"/>
+     <updated>2015-10-18T00:00:00+08:00</updated>
+     <id>http://qiuliang.github.io/tech/2015/10/18/jenkins-shell-restart-tomcat</id>
+     <content type="html">&lt;p&gt;在前一篇文章中，介绍了&lt;a href=&quot;http://www.qiuliang.net/tech/2015/10/02/git-nexus-jenkins-ci.html&quot;&gt;如何利用jenkins来搭建一个持续集成平台&lt;/a&gt;，该平台可以帮助我们完成从获取代码、编译、打包、部署等一系列的事情，极大的方便了我们的日常开发工作。&lt;/p&gt;
+
+&lt;p&gt;但在实际使用中发现，之前使用的部署方式，是基于tomcat的热部署，这种方式不是很稳定，尤其在部署次数多了以后，经常出现内存溢出等错误，需要人工干预，这显然不是我们所希望的结果。如果是在一个比较大的研发团队，一般都会有一套自己开发的比较成熟的部署平台，比如我之前所在的团队，专门开发了一套自动化部署平台，简单来说就是在目标server上安装一个agent，利用该agent，可以干很多事情，比如执行前、后置脚本，收集日志、监控server等等。如果在一个创业型的中小规模技术团队，这个事情的成本是比较高的，因此需要另想办法。&lt;/p&gt;
+
+&lt;p&gt;其实解决部署稳定性的问题，一个比较简单的办法就是部署前先停止应用，部署完成后再把应用启动起来。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;如果你的业务无法忍受短暂的停机，需要考虑部署时的容错，该方案不在本文讨论之列。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;有了大致思路，开始实施就比较简单了，最后总结为如下几个点：&lt;/p&gt;
+
+&lt;h2 id=&quot;jenkins-serverserverssh&quot;&gt;首先需要建立jenkins server和目标server的ssh信任关系&lt;/h2&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;ssh-keygen -t &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;rsa&lt;span class=&quot;p&quot;&gt;|&lt;/span&gt;dsa&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;
+ssh-copy-id -i ~/.ssh/id_rsa.pub user@your_ip_address&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;section&quot;&gt;编写重启脚本&lt;/h2&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;#!/bin/bash&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# author : qiuliang&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# date : 2015-10-15&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# =====deploy变量=====&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# 应用程序的context path，如果是根路径，变量值为 ROOT&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;app_context_path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;salesvc
+&lt;span class=&quot;c&quot;&gt;# 应用程序端口号&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;app_port&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;8082
+&lt;span class=&quot;c&quot;&gt;# tomcat目录名称应该满足如下规范，例如：tomcat-端口号&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;app_tomcat_path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/home/work/tomcat-8082
+&lt;span class=&quot;c&quot;&gt;# build完成的war包名称&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;war_name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;api-1.0-SNAPSHOT.war
+&lt;span class=&quot;c&quot;&gt;# war包地址&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;war_url&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&amp;#39;http://ci.aaa.com/job/api-sales/api/1.0-SNAPSHOT/api-1.0-SNAPSHOT.war&amp;#39;&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# =====deploy变量 end=====&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# 进入tomcat应用程序目录&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$app_tomcat_path&lt;/span&gt;/webapps
+&lt;span class=&quot;c&quot;&gt;# 备份最近一次的包&lt;/span&gt;
+mv &lt;span class=&quot;nv&quot;&gt;$app_context_path&lt;/span&gt;.war &lt;span class=&quot;nv&quot;&gt;$app_context_path&lt;/span&gt;.war.bak
+&lt;span class=&quot;c&quot;&gt;# 下载最后一次build的包，该地址需要根据应用具体地址修改&lt;/span&gt;
+wget &lt;span class=&quot;nv&quot;&gt;$war_url&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# kill tomcat实例&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;tomcat_pid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;/usr/sbin/lsof -n -P -t -i :&lt;span class=&quot;nv&quot;&gt;$app_port&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; -n &lt;span class=&quot;s2&quot;&gt;&amp;quot;$tomcat_pid&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;kill&lt;/span&gt; -9 &lt;span class=&quot;nv&quot;&gt;$tomcat_pid&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# 删除应用程序目录&lt;/span&gt;
+rm -fr &lt;span class=&quot;nv&quot;&gt;$app_tomcat_path&lt;/span&gt;/webapps/&lt;span class=&quot;nv&quot;&gt;$app_context_path&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# 重命名context path&lt;/span&gt;
+mv &lt;span class=&quot;nv&quot;&gt;$war_name&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$app_context_path&lt;/span&gt;.war
+&lt;span class=&quot;c&quot;&gt;# 重新启动tomcat&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;JAVA_HOME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/usr/local/jdk1.7.0_79
+&lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$app_tomcat_path&lt;/span&gt;/bin/
+./startup.sh&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;jenkins-job&quot;&gt;修改jenkins job配置&lt;/h2&gt;
+
+&lt;p&gt;增加build post步骤，选择shell：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;ssh 192.168.220.180 &lt;span class=&quot;s1&quot;&gt;&amp;#39;bash -x -s&amp;#39;&lt;/span&gt; &amp;lt; api/src/main/resources/ci/deploy_test.sh&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;完成上述步骤后，执行job，如果最终显示SUCCESS，则大功告成。&lt;/p&gt;
+</content>
+   </entry>
+   
+   <entry>
+     <title>基于git、maven、nexus、jenkins搭建适合中小型技术团队的CI平台</title>
+     <link href="http://qiuliang.github.io/tech/2015/10/02/git-nexus-jenkins-ci.html"/>
+     <updated>2015-10-02T00:00:00+08:00</updated>
+     <id>http://qiuliang.github.io/tech/2015/10/02/git-nexus-jenkins-ci</id>
+     <content type="html">&lt;blockquote&gt;
+  &lt;p&gt;在阅读本文前，假设你对git、maven有了一个基本的了解，也包括一些其他的专有名词，如不了解，建议查阅官方资料或直接google。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;section&quot;&gt;为什么要搭建这样一个平台？&lt;/h2&gt;
+
+&lt;p&gt;对于一个稍具规模的研发团队来说，每个角色都各司其职，如果没有一套很好的开发流程和管理手段，那在进行一些相对复杂的项目开发时，因开发流程不规范、管理和沟通效率低下带来的各种问题会层出不穷，大家也会手忙脚乱，不利于项目发展和团队配合。因此搭建一套适合自己团队的持续集成平台，是一个非常重要的事情，至少可以带来如下收益：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;规范的代码分支管理&lt;/li&gt;
+  &lt;li&gt;快速的构建&lt;/li&gt;
+  &lt;li&gt;尽早的集成&lt;/li&gt;
+  &lt;li&gt;提升多项目、多版本的并行能力&lt;/li&gt;
+  &lt;li&gt;更可靠的代码和更稳健的应用&lt;/li&gt;
+  &lt;li&gt;前后端更彻底的解耦和配合&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;ci&quot;&gt;CI系统结构&lt;/h2&gt;
+
+&lt;p&gt;基于团队的实际情况，我们搭建了如下的CI平台，基本都是用开源组件实现，其结构如下：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/ci-archetect.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;h5pc-web&quot;&gt;项目开发普通流程（主要是指H5/PC Web）&lt;/h3&gt;
+
+&lt;p&gt;先简单介绍下我们的开发模式：一般将项目分为前后端两个team，前端team负责UI、样式、前端JS逻辑交互、异步渲染等工作；后端team主要负责数据加工、逻辑处理、持久化、分布式cache等工作。&lt;/p&gt;
+
+&lt;p&gt;基于以上分工，一个常规的开发流程一般是这样的：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;设计师设计UI&lt;/li&gt;
+  &lt;li&gt;前端制作人员制作成HTML原型&lt;/li&gt;
+  &lt;li&gt;后端开发人员进行rest接口开发&lt;/li&gt;
+  &lt;li&gt;前端人员进行UI交互开发（过程中使用mock进行接口数据模拟，逐步过渡到后端开发人员提供的真实接口）&lt;/li&gt;
+  &lt;li&gt;前、后端人员在项目开发中期开始在CI平台进行构建和集成&lt;/li&gt;
+  &lt;li&gt;反复debug、持续构建，直至达到RC版本&lt;/li&gt;
+  &lt;li&gt;上线、打tag&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;使用这种开发模式，我认为可以带来如下好处：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;分工清晰、职责明确&lt;/li&gt;
+  &lt;li&gt;每个开发人员更加专注于自己的工作&lt;/li&gt;
+  &lt;li&gt;系统边界清晰，封装更合理规范
+    &lt;ul&gt;
+      &lt;li&gt;对于后端开发人员来说，提供的api是给团队内另外的人来使用，因此在封装的时候，包括url、入参、出参等细节考虑更周全，更易于理解；&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;前后端的debug更加容易&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;接下来针对该方案，介绍一下几个主要的系统组件的安装和配置方式。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;我们的标准环境一般是基于CentOS 6.5的最小化安装。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;gitlab&quot;&gt;gitlab安装和配置&lt;/h2&gt;
+
+&lt;p&gt;git已经越来越流行，基本上成了互联网研发团队的标配，其灵活的分支模型以及强大的分布式仓库管理能力，对于管理大型项目复杂代码，完全能游刃有余，再搭配上gitlab，图形化的代码管理、简单易用的分支、tag管理，和基本的wiki、issue管理，现在gitlab已经开始出收费的版本了，但即便是免费的社区版本，功能已经是完全够用的。&lt;/p&gt;
+
+&lt;p&gt;另外要强调一下的是gitlab所提供的pull request或者说code review功能，非常的不错，这对提高团队代码质量能起到很大的作用。&lt;/p&gt;
+
+&lt;h3 id=&quot;section-1&quot;&gt;步骤&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;基本按照官网操作步骤即可，以下操作可能会因版本变化而有所差异&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4 id=&quot;section-2&quot;&gt;1. 安装必须的依赖组件&lt;/h4&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;sudo yum install curl openssh-server postfix cronie
+sudo service postfix start
+sudo chkconfig postfix on
+sudo lokkit -s http -s ssh&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h4 id=&quot;gitlab-rpm&quot;&gt;2. 安装gitlab rpm包&lt;/h4&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.rpm.sh &lt;span class=&quot;p&quot;&gt;|&lt;/span&gt; sudo bash
+sudo yum install gitlab-ce
+rpm -i gitlab-ce-XXX.rpm&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h4 id=&quot;gitlab-1&quot;&gt;3. 启动gitlab&lt;/h4&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;sudo gitlab-ctl reconfigure&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h4 id=&quot;host&quot;&gt;4. 访问host地址，使用默认的如下管理员账号可进行配置修改&lt;/h4&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;Username: root
+Password: 5iveL!fe&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;mavennexus&quot;&gt;maven私服（nexus）安装和配置&lt;/h2&gt;
+
+&lt;p&gt;nexus的安装过程比较简单，从官网下载nexus压缩包后，直接解压到工作目录，执行如下命令即可：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;./bin/nexus console&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;jenkins&quot;&gt;jenkins安装和配置&lt;/h2&gt;
+
+&lt;h3 id=&quot;jenkins-1&quot;&gt;jenkins是什么？&lt;/h3&gt;
+
+&lt;p&gt;简单来说，就是一个能提高开发人员效率的工具，减少一些重复的工作，例如：编译一个软件项目，通过cron去运行一个自动化任务。主要关注点如下：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;持续build/testing一个软件项目&lt;/li&gt;
+  &lt;li&gt;监控外部job的执行情况&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;section-3&quot;&gt;安装&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;java version “1.7.0_85”
+jenkins version : 1.624&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;安装相关包：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;- sudo wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
+- sudo rpm --import https://jenkins-ci.org/redhat/jenkins-ci.org.key
+- sudo yum install jenkins&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;启动服务：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;- sudo service jenkins start/stop/restart
+- sudo chkconfig jenkins on&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;jenkins web端默认为8080端口，请确认防火墙是否打开。&lt;/p&gt;
+
+&lt;p&gt;如果上面步骤都顺利的话，打开地址：Http://localhost:8080应该可以看到jenkins的管理界面了。&lt;/p&gt;
+
+&lt;h3 id=&quot;section-4&quot;&gt;配置&lt;/h3&gt;
+
+&lt;h4 id=&quot;git&quot;&gt;1. 安装git插件&lt;/h4&gt;
+
+&lt;p&gt;默认没有集成git，需要先安装相关插件：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;git plugin&lt;/li&gt;
+  &lt;li&gt;git client plugin&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;centosgit&quot;&gt;2. 升级CentOS下的git客户端&lt;/h4&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;因为jenkins的git插件需要使用1.7.9以上版本，而CentOS 6.5自带的git是1.7.1版本，需要先升级CentOS下的git。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;rpm –import http://apt.sw.be/RPM-GPG-KEY.dag.txt&lt;/li&gt;
+  &lt;li&gt;安装RPMForge源：rpm -i http://pkgs.repoforge.org/rpmforge-release/rpmforge-release-0.5.3-1.el6.rf.x86_64.rpm
+        注意选择不同的版本：http://pkgs.repoforge.org/rpmforge-release/&lt;/li&gt;
+  &lt;li&gt;查看可用的git模块：yum –enablerepo=rpmforge-extras provides git&lt;/li&gt;
+  &lt;li&gt;安装适合当前系统的版本：yum –enablerepo=rpmforge-extras install git-1.7.12.4-1.el6.rfx.x86_64&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;maven&quot;&gt;3. 配置maven&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;下载maven http://maven.apache.org/download.cgi&lt;/li&gt;
+  &lt;li&gt;编辑环境变量：vi /etc/profile&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;M2_HOME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/usr/local/apache-maven-3.3.3
+&lt;span class=&quot;nv&quot;&gt;PATH&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$PATH&lt;/span&gt;:&lt;span class=&quot;nv&quot;&gt;$JAVA_HOME&lt;/span&gt;/bin:&lt;span class=&quot;nv&quot;&gt;$M2_HOME&lt;/span&gt;/bin
+&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;PATH USER LOGNAME MAIL HOSTNAME HISTSIZE HISTCONTROL&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;环境变量生效：source /etc/profile&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5 id=&quot;jenkinsmaven&quot;&gt;3.1 在jenkins管理端配置maven&lt;/h5&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/jenkins-maven.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;在打包的时候，这个地方遇到了一个比较大的坑，主要是我的jenkins server安装在mac下的pd虚机上，如果使用默认的maven中央库的话，会一直报一个错误：&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;应该是虚机的网络问题，无法连接到https协议的中央库，后来修改maven使用了oschina的第三方库后解决。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;在jenkins执行job时又遇到了文件权限的错误，默认情况下maven生成的包位于如下目录：/var/lib/jenkins/jobs/test/workspace/&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;需要修改执行jenkins用户对该目录的写入权限。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;错误：Jenkins needs to know where your Maven is installed.
+这个问题的主要原因是全局系统设置中的maven的几个配置不正确，主要配置Maven、Maven Installation几个配置节。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4 id=&quot;jdk&quot;&gt;4. 配置JDK&lt;/h4&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/jenkins-jdk.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;在系统全局设置里面，进行JDK的配置：&lt;/p&gt;
+
+&lt;h4 id=&quot;section-5&quot;&gt;5. 配置部署插件&lt;/h4&gt;
+
+&lt;p&gt;到插件管理模块中安装：Deploy to container Plugin&lt;/p&gt;
+
+&lt;p&gt;增加自动化部署的配置：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/jenkins-deploy.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;job&quot;&gt;新建一个job&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;选择构建一个maven项目&lt;/li&gt;
+  &lt;li&gt;选择需要的jdk版本&lt;/li&gt;
+  &lt;li&gt;设置git代码分支地址和身份验证信息&lt;/li&gt;
+  &lt;li&gt;选择pom文件的相对路径&lt;/li&gt;
+  &lt;li&gt;设置deploy的target&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;完成以上安装和配置工作后，基本上一套标准的CI工作流程就能跑起来了，enjoy！&lt;/p&gt;
+</content>
+   </entry>
+   
+   <entry>
      <title>git分支模型探讨</title>
-     <link href="http://www.qiuliang.net/tech/2015/07/25/git-branch-module.html"/>
+     <link href="http://qiuliang.github.io/tech/2015/07/25/git-branch-module.html"/>
      <updated>2015-07-25T00:00:00+08:00</updated>
-     <id>http://www.qiuliang.net/tech/2015/07/25/git-branch-module</id>
+     <id>http://qiuliang.github.io/tech/2015/07/25/git-branch-module</id>
      <content type="html">&lt;p&gt;在阅读本文之前，假设你已经熟悉了git的常用命令，并且对git的分支模型有了基本的了解。&lt;/p&gt;
 
 &lt;p&gt;基础常用命令：&lt;/p&gt;
@@ -121,9 +718,9 @@
    
    <entry>
      <title>创新是这个世界的源动力 —《从0到1》</title>
-     <link href="http://www.qiuliang.net/book/2015/07/18/zero-to-one.html"/>
+     <link href="http://qiuliang.github.io/book/2015/07/18/zero-to-one.html"/>
      <updated>2015-07-18T00:00:00+08:00</updated>
-     <id>http://www.qiuliang.net/book/2015/07/18/zero-to-one</id>
+     <id>http://qiuliang.github.io/book/2015/07/18/zero-to-one</id>
      <content type="html">&lt;p&gt;&lt;img src=&quot;http://img3.douban.com/lpic/s28012945.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;大概1个多月以前，领导向我们推荐了这本书，来自于硅谷创业教父Peter Thiel的大作，如果你还不甚了解Peter，推荐自行google，简单来说，就是Paypal的founder之一，后来又在很早的时候投资了Facebook，以及在硅谷参与或投资了众多的科技公司。而这本书，我想就是peter在创立或投资一家公司时的一些总结和思考，其中大部分的内容，来源于其在斯坦福的一次分享。&lt;/p&gt;
@@ -216,50 +813,50 @@
    
    <entry>
      <title>Markdown资源分享</title>
-     <link href="http://www.qiuliang.net/tool/2014/11/27/markdown-resource-share.html"/>
+     <link href="http://qiuliang.github.io/tool/2014/11/27/markdown-resource-share.html"/>
      <updated>2014-11-27T00:00:00+08:00</updated>
-     <id>http://www.qiuliang.net/tool/2014/11/27/markdown-resource-share</id>
+     <id>http://qiuliang.github.io/tool/2014/11/27/markdown-resource-share</id>
      <content type="html">&lt;p&gt;&lt;code&gt;Markdown&lt;/code&gt;的核心，就是使用极为简单的标记语法，来书写具备良好外观格式的文档解析工具，使作者的核心关注在文档内容本身，而不是如何排版上。&lt;/p&gt;
 
 &lt;h2 id=&quot;section&quot;&gt;常用语法&lt;/h2&gt;
 
 &lt;p&gt;&lt;strong&gt;标题&lt;/strong&gt;&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;# 标题一&lt;/span&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;# 标题一&lt;/span&gt;
 &lt;span class=&quot;c&quot;&gt;## 标题二&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;### 标题N&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span class=&quot;c&quot;&gt;### 标题N&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;&lt;strong&gt;有序/无序列表&lt;/strong&gt;&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;- item
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;- item
 - item2
 
 1. item1
-2. item2&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+2. item2&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;&lt;strong&gt;引用&lt;/strong&gt;&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&amp;gt; 这里是引用内容&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&amp;gt; 这里是引用内容&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;&lt;strong&gt;强调加粗&lt;/strong&gt;&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;**这里是加粗内容**&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;**这里是加粗内容**&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;&lt;strong&gt;行内代码&lt;/strong&gt;&lt;/p&gt;
 
 &lt;p&gt;这是一个&lt;code&gt;行内代码&lt;/code&gt;&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;这里是行内代码&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;这里是行内代码&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;&lt;strong&gt;代码高亮&lt;/strong&gt;&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;sb&quot;&gt;```&lt;/span&gt; ruby
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;sb&quot;&gt;```&lt;/span&gt; ruby
 &lt;span class=&quot;nv&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;test1&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
 &lt;span class=&quot;nv&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; a.gsub&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/&lt;span class=&quot;se&quot;&gt;\d&lt;/span&gt;+/,&lt;span class=&quot;s1&quot;&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
 print a&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
 print b&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
 a.gsub!&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/&lt;span class=&quot;se&quot;&gt;\d&lt;/span&gt;+/,&lt;span class=&quot;s1&quot;&gt;&amp;#39;b&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;sb&quot;&gt;```&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span class=&quot;sb&quot;&gt;```&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;h2 id=&quot;section-1&quot;&gt;推荐工具&lt;/h2&gt;
 
@@ -292,9 +889,9 @@ a.gsub!&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/&lt;span class=&quot;se&qu
    
    <entry>
      <title>天才们的思维盛筵，《上帝掷骰子吗--量子物理史话》</title>
-     <link href="http://www.qiuliang.net/mind/2014/11/25/quantum-history.html"/>
+     <link href="http://qiuliang.github.io/mind/2014/11/25/quantum-history.html"/>
      <updated>2014-11-25T00:00:00+08:00</updated>
-     <id>http://www.qiuliang.net/mind/2014/11/25/quantum-history</id>
+     <id>http://qiuliang.github.io/mind/2014/11/25/quantum-history</id>
      <content type="html">&lt;p&gt;最近“星际穿越”热映，周围关于宇宙的话题比比皆是，同事们的讨论、朋友圈的各种分析、影评。但宇宙究竟是个什么？时间又是个什么？是否真的存在虫洞？很难说清楚。&lt;/p&gt;
 
 &lt;p&gt;不禁让我想起几年前，一个同事推荐过的一本书，给我描述了几个故事，至今都印象深刻，一个是阿喀琉斯追龟辩、另一个是薛定谔的猫，虽说都是思维实验，但放到微观世界，似乎又很有道理，并且很诡异，这大大激发了我的兴趣，因当时并没有看完，决定找来这本书再看一遍：《上帝掷骰子吗–量子物理史话》。&lt;/p&gt;
@@ -330,895 +927,6 @@ a.gsub!&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/&lt;span class=&quot;se&qu
 &lt;p&gt;量子理论是如此的神奇，却又实实在在的影响着我们的生活，而我们，一个普通人，也许顺其自然，关心身边鲜活的每一个人（也许这个人只是一堆电子原子的组合，也许只是某个多维空间真正的本我的投影），获得真正的快乐和希望，才是对我们而言最有意义的。而我们对微观、宏观世界的了解，只是在碰到真正的问题时，帮我们多一些思考，多一些正确的选择。&lt;/p&gt;
 
 &lt;p&gt;到这儿这篇文章其实有点写不下去了，干脆草草结束，或许将来会有新的思考。&lt;/p&gt;
-</content>
-   </entry>
-   
-   <entry>
-     <title>文件存储系统映射模块原理解析</title>
-     <link href="http://www.qiuliang.net/fastdfs/2014/11/19/file-storage-based-on-fastdfs.html"/>
-     <updated>2014-11-19T00:00:00+08:00</updated>
-     <id>http://www.qiuliang.net/fastdfs/2014/11/19/file-storage-based-on-fastdfs</id>
-     <content type="html">&lt;h2 id=&quot;section&quot;&gt;系统简介&lt;/h2&gt;
-&lt;p&gt;近期我们开发了一套基于&lt;code&gt;Fastdfs&lt;/code&gt;的分布式文件存储发布系统，用于解决如下几个问题：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;大量静态文件的存储和访问&lt;/li&gt;
-  &lt;li&gt;停用原有的FTP管理模式&lt;/li&gt;
-  &lt;li&gt;解决NAS存储单点的问题&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;在项目之初，为了实现满足这些需求的一套系统，查证了一些相关案例和开源组件，本着简单可依赖的原则，最后确定为采用&lt;code&gt;Fastdfs&lt;/code&gt;作为存储平台，之所以是&lt;code&gt;Fastdfs&lt;/code&gt;，也是觉得一是公司的某些业务线已经在使用，其可用性和稳定性已得到一定检验；二是&lt;code&gt;Fastdfs&lt;/code&gt;作为国内的一款开源软件，资料较多且使用成本较低。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-1&quot;&gt;核心思路&lt;/h3&gt;
-
-&lt;p&gt;因底层存储系统采用了开源实现，那么我们的核心就是做一个简单易用的文件管理端和发布站点，使用过&lt;code&gt;Fastdfs&lt;/code&gt;的同学应该知道，通过其client api上传文件后，得到的是一个通过哈希散列计算后的文件名，无法使用原始文件名进行访问，如果是一般的文件存储（例如一些广告背景图等），可能问题也不大，但如果是发布一个促销专题页面，那么这个工作将变得极其困难，因为一个促销专题页，往往同时包含所依赖的样式文件、背景图片、脚本等，页面html中一般是依赖的相对路径，所以如果直接上传到&lt;code&gt;Fastdfs&lt;/code&gt;则文件路径依赖的问题无法解决，或者说要很麻烦的方式解决。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;因此，我们引入了映射模块，用来处理逻辑地址和物理地址的对应关系。在本文中也将主要针对映射模块做一个比较详细的介绍和分析。&lt;/strong&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;section-2&quot;&gt;主要具备如下功能和特点&lt;/h3&gt;
-
-&lt;p&gt;该系统目前已经上线，主要具备如下功能和特点：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;基于目录层级的文件、权限管理方案&lt;/li&gt;
-  &lt;li&gt;文件发布支持多域名&lt;/li&gt;
-  &lt;li&gt;分布式系统保证高可用和稳定性，易于横向扩展&lt;/li&gt;
-  &lt;li&gt;映射模块基于&lt;code&gt;Nginx&lt;/code&gt;内部原理实现&lt;/li&gt;
-  &lt;li&gt;支持文件版本管理，支持回滚操作&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;该系统包含三个模块：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;管理模块&lt;/p&gt;
-
-    &lt;pre&gt;&lt;code&gt;  一套基于HTML的UI界面，可进行系统管理、文件管理等功能。
-&lt;/code&gt;&lt;/pre&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;映射模块&lt;/p&gt;
-
-    &lt;pre&gt;&lt;code&gt;  负责解析用户请求，并利用Nginx内部特性来返回数据。
-&lt;/code&gt;&lt;/pre&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;存储模块&lt;/p&gt;
-
-    &lt;pre&gt;&lt;code&gt;  完全基于Fastdfs实现，易于扩展，要求安装fastdfs-nginx-module。
-&lt;/code&gt;&lt;/pre&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;section-3&quot;&gt;映射模块介绍&lt;/h2&gt;
-
-&lt;p&gt;映射模块就是一个部署于&lt;code&gt;Tomcat&lt;/code&gt;之上的web站点，其职责就是接受前端Nginx转发过来的请求，把一个URL地址转换为&lt;code&gt;fastdfs&lt;/code&gt;存储的物理地址，并返回给&lt;code&gt;Nginx&lt;/code&gt;，&lt;code&gt;Nginx&lt;/code&gt;拿到物理地址后读取文件并返回给用户。&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;&lt;code&gt;Nginx&lt;/code&gt;作为高性能的反向代理服务器，在本模块中起到的作用不仅仅是负载均衡，还利用到了Nginx的一个内部特性&lt;code&gt;sendfile&lt;/code&gt;，利用该特性，&lt;code&gt;Tomcat&lt;/code&gt;作为映射模块仅需要处理映射关系，而不用处理文件IO操作，而我们知道，应用程序服务器上的性能瓶颈往往是IO操作，通过部署这样的系统结构，得以提高系统的整体性能。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h3 id=&quot;section-4&quot;&gt;为什么需要加入映射模块&lt;/h3&gt;
-
-&lt;p&gt;既然底层的存储是基于&lt;code&gt;Fastdfs&lt;/code&gt;实现，那么利用&lt;code&gt;fastdfs-nginx-module&lt;/code&gt;，完全可以通过文件的物理地址进行访问，只需要做一个GUI来进行文件的管理即可，这也是很多存储系统的实现方式。现加入映射模块，除了解决上文提到的发布促销页面的问题，其意义还在于：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;文件的URL地址由复杂变为简单可理解，易于阅读且对SEO友好。&lt;/li&gt;
-  &lt;li&gt;文件的组织方式变得有序、可管理。&lt;/li&gt;
-  &lt;li&gt;基于目录树的结构，易于权限的控制和管理。&lt;/li&gt;
-  &lt;li&gt;发布站点多域名支持、性能扩展更为容易。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;section-5&quot;&gt;映射模块工作流程&lt;/h3&gt;
-
-&lt;p&gt;完整的映射模块包含如下几个部分：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Nginx（同时起到负载均衡和读取文件的作用）&lt;/li&gt;
-  &lt;li&gt;Tomcat 站点（处理url和物理地址对应关系的程序逻辑）&lt;/li&gt;
-  &lt;li&gt;MySQL（逻辑url和物理url mapping关系存储）&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;现以用户请求一个文件为例，来说明映射模块的工作流程。例如某用户访问地址：
-&lt;code&gt;http://promotion.xxx.com/hotel/2014/1111.html&lt;/code&gt;。&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;Nginx作为负载均衡，接受用户请求，并将请求转发到某个Tomcat实例上。&lt;/li&gt;
-  &lt;li&gt;Tomcat 通过查询本地缓存，得到物理地址，并将物理地址写入Response Header中，其key为：&lt;code&gt;X-Accel-Redirect&lt;/code&gt;。&lt;/li&gt;
-  &lt;li&gt;Nginx获取到Response Header中包含&lt;code&gt;X-Accel-Redirect&lt;/code&gt;，读取其中的value，并再次将请求分发到&lt;code&gt;fastdfs-nginx-module&lt;/code&gt;上。&lt;/li&gt;
-  &lt;li&gt;&lt;code&gt;fastdfs-nginx-module&lt;/code&gt;返回数据给Nginx，用户接收到文件流，整体流程结束。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h4 id=&quot;section-6&quot;&gt;流程图&lt;/h4&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/blog/efc_mapping_process.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;section-7&quot;&gt;部署说明和关键配置&lt;/h3&gt;
-
-&lt;p&gt;要实现如上的系统结构，在系统部署和配置上需要满足如下的条件：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Nginx作为前端负载均衡&lt;/li&gt;
-  &lt;li&gt;Tomcat（或其他任意后端Server）部署映射处理程序&lt;/li&gt;
-  &lt;li&gt;Fastdfs Tracker和Storage服务器集群&lt;/li&gt;
-  &lt;li&gt;Nginx转发规则需要配置两个，一是fastdfs group路径，二是除此之外的所有路径。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Nginx转发规则配置如下：&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;转发规则1&lt;/strong&gt;&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-nginx&quot; data-lang=&quot;nginx&quot;&gt;&lt;span class=&quot;k&quot;&gt;location&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/group1/&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;kn&quot;&gt;expires&lt;/span&gt;      &lt;span class=&quot;s&quot;&gt;-1s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;kn&quot;&gt;proxy_pass&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;http://fastdfs.server&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;#break;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;strong&gt;转发规则2&lt;/strong&gt;&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-nginx&quot; data-lang=&quot;nginx&quot;&gt;&lt;span class=&quot;k&quot;&gt;location&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;kn&quot;&gt;expires&lt;/span&gt;      &lt;span class=&quot;s&quot;&gt;-1s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;kn&quot;&gt;proxy_set_header&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;Host&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;kn&quot;&gt;proxy_pass&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;http://efcproxy.server&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;#break;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;strong&gt;upstream配置&lt;/strong&gt;&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-nginx&quot; data-lang=&quot;nginx&quot;&gt;&lt;span class=&quot;k&quot;&gt;upstream&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;efcproxy.server&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-	&lt;span class=&quot;kn&quot;&gt;server&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;127.0.0.1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8080&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#映射处理程序服务器地址&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;upstream&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;fastdfs.server&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-	&lt;span class=&quot;kn&quot;&gt;server&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;192.168.14.153&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8080&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#fastdfs storage地址&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;还是以上文中的请求示例：&lt;/p&gt;
-
-&lt;p&gt;路径&lt;code&gt;/hotel/2014/1111.html&lt;/code&gt;会首先被规则2转发到映射处理程序，然后写入Response Header后，&lt;code&gt;X-Accel-Redirect&lt;/code&gt;的value为：&lt;code&gt;/group1/M00/AA/BB/asldkjfj89oip9.html&lt;/code&gt;，Nginx读取到该值，并由规则1继续完成处理。&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;X-Accel-Redirect是在Nginx内部处理，所以在用户端浏览器是看不到该header，不会暴露出文件的真实地址，浏览器也不会做302跳转，是在一次请求中完成。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;section-8&quot;&gt;总结&lt;/h2&gt;
-
-&lt;p&gt;通过上述系统实现，映射模块具备如下的特点：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;结构简单、轻量级&lt;/li&gt;
-  &lt;li&gt;拥有基本上接近于静态文件服务器的性能&lt;/li&gt;
-  &lt;li&gt;&lt;code&gt;Tomcat&lt;/code&gt;无IO压力&lt;/li&gt;
-  &lt;li&gt;易于部署和扩展&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;section-9&quot;&gt;文件存储系统整体结构图&lt;/h3&gt;
-
-&lt;p&gt;最后附上本系统的整体结构图，方便做更全面的了解。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/blog/efc_system_arch.png&quot; alt=&quot;整体结构图&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;section-10&quot;&gt;参考&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://wiki.nginx.org/XSendfile&quot;&gt;Nginx-X-Accel-Rediret&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://code.google.com/p/fastdfs-nginx-module/&quot;&gt;Fastdfs-nginx-module&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</content>
-   </entry>
-   
-   <entry>
-     <title>git常用命令整理（一）</title>
-     <link href="http://www.qiuliang.net/git/2014/11/04/git-used-to-command-1.html"/>
-     <updated>2014-11-04T23:12:22+08:00</updated>
-     <id>http://www.qiuliang.net/git/2014/11/04/git-used-to-command-1</id>
-     <content type="html">&lt;h4 id=&quot;section&quot;&gt;基本操作&lt;/h4&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;提交所有文件&lt;/p&gt;
-
-    &lt;p&gt;&lt;code&gt;bash
-  git add -A
- &lt;/code&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;如何增加排除列表？&lt;/p&gt;
-
-    &lt;p&gt;在git目录下，新增.gitingore文件，输入要排除的文件或匹配规则，然后提交到仓库&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;如何忽略已经跟踪的代码&lt;/p&gt;
-
-    &lt;p&gt;对于untrack的文件，我们可以创建.gitignore文件。
-  对于已经track的文件，我们可以这样做：&lt;/p&gt;
-
-    &lt;p&gt;&lt;code&gt;bash
-  git update-index --assume-unchanged &amp;lt;files&amp;gt;
- &lt;/code&gt;&lt;/p&gt;
-
-    &lt;p&gt;这样，即使已经更改了文件，用git status也不会看见文件已经更改。
-  但在使用时需要小心，取消这种设定可以使用：&lt;/p&gt;
-
-    &lt;p&gt;&lt;code&gt;bash
-  git update-index --no-assume-unchanged &amp;lt;files&amp;gt;
- &lt;/code&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;查看本地分支&lt;/p&gt;
-
-    &lt;p&gt;&lt;code&gt;bash
-  git branch #查看本地分支
-  git branch -r #查看远程分支
- &lt;/code&gt;&lt;/p&gt;
-
-    &lt;p&gt;查看远程分支将显示：&lt;/p&gt;
-
-    &lt;p&gt;origin/master
-  origin/develop
-  origin是远程标记名称，可自定义。但使用git clone将默认使用origin名称。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;创建分支&lt;/p&gt;
-
-    &lt;p&gt;&lt;code&gt;bash
-  git checkout -b source master
- &lt;/code&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;提交分支到远程&lt;/p&gt;
-
-    &lt;p&gt;&lt;code&gt;bash
-  git push origin source
- 	&lt;/code&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;合并分支到当前分支&lt;/p&gt;
-
-    &lt;p&gt;&lt;code&gt;bash
-  git checkout develop
-  git merge master #从master合并改动到develop
- &lt;/code&gt;&lt;/p&gt;
-
-    &lt;blockquote&gt;
-      &lt;p&gt;建议对远端跟踪分支能做的操作： 
- *  使用git fetch 更新远端跟踪分支 
- *  合并远端跟踪分支到当前分支 
- *  根据远端跟踪分支创建本地分支&lt;/p&gt;
-    &lt;/blockquote&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;基于远程跟踪分支创建本地分支：&lt;/p&gt;
-
-    &lt;p&gt;&lt;code&gt;bash
-  git checkout -track -b your-local-branch-name origin/develop
- &lt;/code&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;从远端更新本地，采用git fetch&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;git fetch &lt;span class=&quot;c&quot;&gt;#从远端下载内容到本地&lt;/span&gt;
-git checkout your-local-branch
-git merge origin/remote-branch&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;从本地更新远端&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;git checkout your-local-branch &lt;span class=&quot;c&quot;&gt;#1，切换到当前分支&lt;/span&gt;
-git commit -a -m ‘commit’ &lt;span class=&quot;c&quot;&gt;#2，提交改动到本地仓库&lt;/span&gt;
-git push origin remote-branch &lt;span class=&quot;c&quot;&gt;#3，更新远端&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;pre&gt;&lt;code&gt;&amp;gt;如果这个分支在远程仓库里对应不同的名称（如:experiment-by-bob）,你应该这么做：  git push origin experimental:experiment-by-bob
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;切换分支前，需要将当前分支的改动提交到本地。&lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;如果你只是想看看本地分支和远程分支的差异，你可以使用下面的命令：&lt;/p&gt;
-
-    &lt;p&gt;&lt;code&gt;bash
-  git diff master origin/master
- &lt;/code&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;查看最近几次commit的信息
-  $ git log&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;回退到某次commit，或者在某次commit之间跳转&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;git reset —hard b0a21b2a7096f12c49b394abfb338fbc5da8093b&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;将回退的代码提交到远程&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;git push -u develop origin -f&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h4 id=&quot;tag&quot;&gt;tag相关&lt;/h4&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;打tag&lt;/p&gt;
-
-    &lt;p&gt;&lt;code&gt;bash
-  git tag -a 1.0 -m ‘first tag’
- &lt;/code&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;查看tag列表&lt;/p&gt;
-
-    &lt;p&gt;&lt;code&gt;bash
-  git tag 
- &lt;/code&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;查看某个tag信息&lt;/p&gt;
-
-    &lt;p&gt;&lt;code&gt;bash
-  git show 1.0
- &lt;/code&gt;&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-</content>
-   </entry>
-   
-   <entry>
-     <title>碎片时间</title>
-     <link href="http://www.qiuliang.net/mind/2014/11/04/how-to-use-fragmentary-time.html"/>
-     <updated>2014-11-04T06:52:52+08:00</updated>
-     <id>http://www.qiuliang.net/mind/2014/11/04/how-to-use-fragmentary-time</id>
-     <content type="html">&lt;p&gt;&lt;img src=&quot;/images/blog/20141103.jpeg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;总是觉得时间不够用？也许我们应该好好利用下碎片时间。&lt;/p&gt;
-
-&lt;p&gt;什么是碎片时间？&lt;/p&gt;
-
-&lt;p&gt;坐地铁、上厕所、等人、排队、睡觉前…因人而异。&lt;/p&gt;
-
-&lt;p&gt;碎片时间可以干什么？&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;豆瓣阅读、多看等阅读客户端上购买的电子书；&lt;/li&gt;
-  &lt;li&gt;微信订阅号里有价值的文章；&lt;/li&gt;
-  &lt;li&gt;整理自己近期的计划；&lt;/li&gt;
-  &lt;li&gt;打一些需要打的电话；&lt;/li&gt;
-  &lt;li&gt;理理购物清单，把一些必需品加到京东的购物车里；&lt;/li&gt;
-  &lt;li&gt;或者想想中午吃什么；&lt;/li&gt;
-  &lt;li&gt;…&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;哈，还是有不少事情可做，不是么&lt;/p&gt;
-
-</content>
-   </entry>
-   
-   <entry>
-     <title>巴厘游记</title>
-     <link href="http://www.qiuliang.net/life/2014/07/12/life-bali-trip.html"/>
-     <updated>2014-07-12T07:24:52+08:00</updated>
-     <id>http://www.qiuliang.net/life/2014/07/12/life-bali-trip</id>
-     <content type="html">&lt;h2 id=&quot;section&quot;&gt;启程&lt;/h2&gt;
-
-&lt;p&gt;大概在两年前就想计划一次海岛游，但一直没能成行，原因很多：孩子年纪还小、时间、经济等各方面的。也没有定具体的目的地，考虑过的包括普吉岛、塞班、马尔代夫。唯独没有巴厘岛。&lt;/p&gt;
-
-&lt;p&gt;这次去的原因其实也很简单，公司福利，提供4天假期，前后加上端午、周末能凑9天。同行的包括另外两名同事和各自的家属，5月份定下来这个事情，然后就有同事研究目的地，正好有一天JM在途牛上看到了一个巴厘岛的产品，大家看了一下，觉得很不错，当天就下订单付款，事后证明我们是很明智的，第二天这个路线的产品每个人就上涨了1500左右。&lt;/p&gt;
-
-&lt;p&gt;来回都是海南航空，也是第一次坐海航的航班，总体来说比较不错，飞机很准时，空姐大都还比较养眼。但回来的时候是红眼航班，从凌晨0点到早上7点，说实话，真的太累了，以后还是尽量避免坐通宵的飞机。&lt;/p&gt;
-
-&lt;p&gt;7个小时的航程，我们都找到了各自的消遣方式。
-&lt;img src=&quot;/images/blog/bali/0.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;section-1&quot;&gt;到达&lt;/h2&gt;
-
-&lt;p&gt;巴厘岛跟北京基本处在同一个经度，所以没有时差，但维度差很多，已经在南半球了，跟大洋洲隔海相望。落地登巴萨机场，已是晚上10点多，怀着小激动的心情走出机舱，迎接我们的不止是印度洋潮湿的空气，还有门口的安保人员，典型的东南亚人种，看上去似乎不是很友好，也许跟大晚上还要上班的心情有关。印尼对中国实施落地签（VISA ON ARRIVAL）政策，同时需要填写出入境卡，因飞机上没有事先提供，且我们当时也没有搞得特别清楚，直接导致我们7人在机场办理入境花了快2小时。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/blog/bali/1.jpg&quot; alt=&quot;&quot; /&gt;
-在机场时，自己的行李最好自己拿好，不然会有工作人员主动过来帮你拿，当然是要给小费的，2-3刀即可。印尼是一个小费国家，尤其巴厘岛作为国际度假胜地，更是如此，有了之前机场的经验，入住酒店时，有个小黑哥过来帮我们提了箱子，事后老婆也很礼貌的给人小费致以谢意。在国内消费，是很少需要给小费的，大家也没有这个习惯，到了当地最好还是入乡随俗，也不用给太多，更多是一种礼貌的体现吧。&lt;/p&gt;
-
-&lt;p&gt;晚上11、2点左右，陆续有很多航班落地，游客大多是白人，有拖家带口的，也有很多扛着冲浪板的帅哥，毕竟巴厘岛也是世界级的冲浪圣地。欧美人（也许是澳洲人）带孩子的方式跟国人完全不一样，虽然已经很晚了，除了婴儿，没有看到有爸妈抱着的小孩，看上去2岁多的小姑娘就光脚丫跟着，当时机场的空调很大还是很凉的。两口子带2、3个孩子的家庭特别多，这让我觉得是一件非常困难的事情，尤其是最后一天在蓝点湾酒店碰到的一家人，更让我觉得不可思议，看似粗放的带孩子方式，还是有很多值得我们学习的地方。&lt;/p&gt;
-
-&lt;p&gt;到酒店安顿住下，已近凌晨1点，酒店条件一般，但工作人员态度很友好，会主动微笑着跟你打招呼。第二天早晨的自助早餐超出我的想象，好几种鲜榨果汁随便喝，当季主要以西瓜、哈密瓜、芒果、鳄梨、菠萝为主，都是本地自产，另外常见的水果还有山竹、蛇皮果、红毛丹，后面在超市看到的价格都便宜到让你想哭。还有一些鱼类和肉类，以及西式早餐常见的品种，其中一种肠尤其合我胃口，基本每天的早餐都是吃的最多的一顿。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/blog/bali/2.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;section-2&quot;&gt;美香和阿布&lt;/h2&gt;
-
-&lt;p&gt;美香，我们的导游，印尼第四代华裔，祖籍广东，能听说中文却不能读写，会潮州话及英语，二十多岁的样子，短发干净利落，也很容易沟通，整个的行程都会让你觉得舒服。跟她聊天得知，当地人的工作基本围绕旅游行业，房价相当于国内二线城市，但别人是永久使用权。因为职业的关系，也了解了一些当地年轻人使用互联网的情况，比如：华人里面用微信的很多，社交主要是facebook。&lt;/p&gt;
-
-&lt;p&gt;阿布（貌似是这个发音，记不清了），我们的司机，本地土著，不会中文，只能说很简单的英文单词，很友好，似乎有点腼腆，上下车时会主动帮我们拿东西、关车门。最后一天没有导游，因我们想临时改变路线，跟他沟通半天都没说清楚，还是他想到给美香打电话后顺利解决。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-3&quot;&gt;初识库塔&lt;/h2&gt;
-
-&lt;p&gt;库塔（kuta）算是巴厘岛南部最繁华的地区，热闹的商业街、机场都在这个区域，离南边的海滩也很近，在酒店吃饱喝足，同过来接我们的司机和导游汇合，开始第一天的行程。 &lt;/p&gt;
-
-&lt;p&gt;道路都不是很宽，完全没有北京环路的霸气，当地人出行以摩托为主，汽车以两厢小车居多，基本都是日系，偶尔还能看见吉利熊猫，和香港一样，右舵行驶，红绿灯很少，想要租车自驾的还是趁早打消这个念头吧，除了需要国际驾照，更多的是不习惯，以及街上穿来穿去的摩托车实在太多了。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-4&quot;&gt;南湾&lt;/h2&gt;
-
-&lt;p&gt;南湾是库塔南部的一大片海滩，有各种水上运动项目，滑翔伞和甜甜圈、飞鱼什么的比较好玩，但海水和沙滩很一般，乐乐小朋友玩不了这种刺激的运动，就只好和妈妈挖沙子玩了，还和当地的叔叔互动得比较愉快，他们帮乐乐堆了一个美人鱼的尾巴，这让小妞高兴不已。
-&lt;img src=&quot;/images/blog/bali/3.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;玻璃底船算是一个特色，就是快艇把船底换成了玻璃的，方便在海里面观察各种热带鱼、珊瑚神马的。在我们坐船前往海龟岛的途中，每人发了一些面包，用来吸引鱼儿。海水清澈度非常高，被吸引过来的小鱼们也很是漂亮。
-&lt;img src=&quot;/images/blog/bali/4.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;玻璃底船的目的地就是海龟岛了，离南湾大概20分钟船程的小岛，里面有一个小型动物园，以海龟为主，还有一些别的动物：比一只鸡还大的蝙蝠、蟒蛇、巨嘴鸟、蜥蜴、鹰等。这里跟别的动物园不一样的地方是可以跟动物亲密接触，比如抱抱海龟、脖子上挂蟒蛇、提着大蝙蝠，只要你有勇气的话。
-&lt;img src=&quot;/images/blog/bali/5.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;section-5&quot;&gt;情人崖&lt;/h2&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/blog/bali/6.jpg&quot; alt=&quot;&quot; /&gt;
-跟美香见面时，就问过她巴厘岛最好看的景色都有什么，情人崖便是其中之一。第一天行程的下午就安排了这里，果然没有让我们失望，从进景点大门的时候就觉得环境很不错。站在悬崖边，望着宽广的印度洋，海水的颜色层次分明，白色的浪、浅蓝色、深蓝色的海水一直延伸至目力所不及之处。悬崖底下的沙滩非常干净，也没有人的样子，不知道是不是没有开发。悬崖上有一个水吧，可以点些饮料还有当地的炸香蕉，吹着海风，望着大海，真的很惬意。只是要小心悬崖上的猴子，它们一点也不怕人，会趁你不注意偷走你的炸香蕉，还有墨镜、帽子什么的，要小心这些大师兄。
-&lt;img src=&quot;/images/blog/bali/7.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;section-6&quot;&gt;金巴兰海滩&lt;/h2&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/blog/bali/8.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;据称是世界十大落日欣赏地点，但我们运气不是很好，那天有很厚的云层，没有看到最佳的日落。在金巴兰海滩我们享用了一顿海鲜烧烤大餐，其实更多的是吃的一种意境吧。小乐乐在这里邂逅了一条只有几个月大的小狗，她们在一起的感觉很有爱，回去后好好考虑下是不是要给她买个小狗？&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/blog/bali/9.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;section-7&quot;&gt;蓝梦岛&lt;/h2&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/blog/bali/10.jpg&quot; alt=&quot;&quot; /&gt;
-第二天的行程就是出海去蓝梦岛，大概要1个小时的快艇，还是比较远，也正因为远，那边的海水才更蓝、更干净，适合潜水以及各种水上运动。因为没有潜水证，我们只能浮潜，即时是浮潜，也能看到很多的热带鱼，但这个体验跟做“海底漫步”时的体验又差远了，因为海底漫步可以真正的跟鱼类亲密接触。就是在头上带了一个很大的金属氧气面罩，跟着教练下到大概5-10米深的海底，因为头罩很重，可以双脚踩在海床上行走，事先会准备一些面包，捏在手里，一会就会游来很多的鱼围着你，颜色都很好看，大致数了一下有2、30种左右吧，反正我都不认识，趁它们吃面包的时候，可以用手去触摸这些美丽的海底精灵，这种感觉很奇妙，是我们隔着玻璃缸欣赏热带鱼时完全体会不到的，也许这才是真正的自然界中的和谐吧。&lt;/p&gt;
-
-&lt;p&gt;因为乐乐年纪太小，潜水类的运动她都参加不了，但最后跟我们一起坐了一趟飞碟，就是由快艇拉着一个圆形的气垫，我们三个人趴在气垫上面，由快艇拉着气垫在海面上飞驰，因为速度很快，气垫会被拉飞起来，全程我们都把小家伙紧紧地夹在中间，一家人在一起体验这种刺激的运动，感觉也很棒，至少小乐乐是非常开心的。&lt;/p&gt;
-
-&lt;h2 id=&quot;ayana&quot;&gt;Ayana&lt;/h2&gt;
-
-&lt;p&gt;Ayana是当地一个五星度假酒店的名字，本来计划是到里面的Rock Bar喝下午茶，但没想到人异常的多，排了一个多小时的队还没有轮到我们，不得不放弃，看来老外有时候也是很喜欢凑热闹的。&lt;/p&gt;
-
-&lt;p&gt;虽没有体验到著名的Rock Bar，但在Ayana里面逛了一圈也很值得，里面环境一流，每一个角落、花草、建筑都精心打造，真的是一个适合在这里住上几天的好地方，每天就在酒店里到处逛逛，去泳池游泳、私人沙滩戏水、看日落，真正的度假应该是这样的吧。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/blog/bali/11.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;section-8&quot;&gt;海神庙&lt;/h2&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/blog/bali/12.jpg&quot; alt=&quot;&quot; /&gt;
-整个巴厘岛基本都信奉印度教，所以家庙、村庙都随处可见。海神庙位于巴厘岛西部的海岸线上，是当地最有名的庙宇之一，建在海边的大礁石之上，景色也很不错。整个海神庙包括周边被开发成了一个小公园，除了庙宇本身以外，其他基本没啥特色了。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-9&quot;&gt;乌布小镇&lt;/h2&gt;
-
-&lt;p&gt;从海神庙坐车前往乌布的途中，大片的水稻田、玉米地，还有很多高大的椰子树，繁茂的树林、植被，静谧的村落，偶尔也能看到戴着斗笠在田间劳作的当地人，竟让我想起小时候通往外婆家的田间小路，产生了一种身在中国南方农村的错觉。
-&lt;img src=&quot;/images/blog/bali/13.jpg&quot; alt=&quot;&quot; /&gt;
-大约1个小时左右，美香带我们到了一个看上去还蛮有特点的地方，去品尝当地特色脏鸭餐，虽是当地特色，但在我看来，跟中国美食还是没法比的，就是把鸭子用油酥过一遍，再配以一些小食、米饭，味道还过得去，鲜榨果汁依然是必点。这个吃饭的地方坐落于一片稻田边上，倒还有一些意思。
-&lt;img src=&quot;/images/blog/bali/14.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;吃饱喝足我们就前往乌布皇宫，说是皇宫，其实小的可怜，只是建筑有一些异域的特色，随便拍了些照片，就去旁边的乌布大市场逛了。大家都在这里挑选一些纪念品或者带回去的礼物，在我看来，都很普通，没有什么真正有特色的东西。市场里的小贩竟然大都会说一些中文，讨价还价起来熟练得很。乐乐在这个市场还逛得很happy，因为让她自己给小朋友们选购一些礼物，不过她基本上是什么都喜欢。市场里逛的人以中国人为主，我想这也是小贩会说中文的原因。乌布镇中心有条街，两边有不少特色的店，比如咖啡屋、餐吧等，很多老外都是租摩托车过来，随意得就像当地人。
-&lt;img src=&quot;/images/blog/bali/15.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;blue-point-bay&quot;&gt;蓝点湾（Blue Point Bay）&lt;/h2&gt;
-
-&lt;p&gt;第四天其他小伙伴选择去阿勇河漂流，我们一家三口选择泡酒店，各有不同的乐趣。蓝点湾是我们住的第二家酒店，在库塔最南端的海边，环境非常不错，尤其是悬崖边上的餐厅、无边泳池、玻璃教堂，都很美。早上醒来，拉开窗帘，外面有一个很大的阳台，站在阳台上，映入眼帘的是一个欧式小花园，漂亮且精致。免费自助早餐同样很棒，最棒的其实还是在悬崖边吃东西看海的感觉，一大早就已经有很多人在海边冲浪了。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/blog/bali/16.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;无边泳池，拍出来的感觉就真的是和印度洋连在一起一样，让人心旷神怡。整个上午，我和乐乐就泡在泳池里面，这大概也是小妞玩水时间最长的一次了，而她也很勇敢的在深水区玩耍，即使带着游泳圈，在国内游泳池的时候她都是不敢去深水区的。或许是旁边2岁多的白人小孩happy的跳水，让她觉得其实没那么危险吧。而那个小孩没有任何防护措施，就这样跳到2米深的水里，扑腾几下又浮上来，再爬上去，再跳下来，很是欢乐，旁边的妈妈还带着更小的baby，就这样让他随意玩耍，完全不担心，这也让我佩服不已。&lt;/p&gt;
-
-&lt;p&gt;我们在泳池边享受了一把西式的午餐，其实也很简单，就是pizza加果汁，只是躺在沙滩椅上、穿着泳衣吃东西的感觉很棒，而这一天，也让我意识到真正的度假应该是这样的。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/blog/bali/17.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;section-10&quot;&gt;洋人街&lt;/h2&gt;
-
-&lt;p&gt;下午等女士们做完SPA，也到了差不多要离开的时候了，我们选择了去库塔洋人街吃晚餐，晚上到了那边才发现原来巴厘岛还有一片这么繁华的商业街，有点北京三里屯的意思。我们选了海边的一个餐馆，还是西式为主，里面环境不错，还有乐队演出。点餐的时候比较有意思，乐乐想吃意大利面，但我们几个大人想了半天，都不知道意大利面的英文怎么说，后来小家伙急了，直接对服务员来了一句：spaghetti，而服务员竟然听懂了。我们才想起来意大利面就是spaghetti，幼儿园教过，有段时间她也在家念叨过这个单词，看来在幼儿园的英语没有白学：）
-&lt;img src=&quot;/images/blog/bali/18.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;section-11&quot;&gt;告别&lt;/h2&gt;
-
-&lt;p&gt;吃过晚餐，阿布把我们送到了机场，和他热情的握手道别，我们想说see you，但也许不会再遇上了吧。最后额外给了他一些小费，阿布则报以灿烂的笑容和他标志性的动作：竖大拇指。&lt;/p&gt;
-
-&lt;p&gt;在登巴萨机场排队check in的时候，还有个小插曲，几个排队的中国游客吵上了，看上去有50多的样子，被机场安保人员阻止，而这也让在旁边排队的我们尴尬不已。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-12&quot;&gt;再见巴厘&lt;/h2&gt;
-
-&lt;p&gt;在回去的航班上，想着这几天所经历的人和事，感触颇多，除了巴厘岛的蓝天、大海，还有国内游客和欧美游客的差异。&lt;/p&gt;
-
-&lt;p&gt;首先是玩的方式不一样，中国游客喜欢玩一些水上运动项目；喜欢到处逛各种景点；欧美人更多的是去冲浪、深潜；景点的欧美人也很少，他们更多的是要么拖家带口住在酒店里度假、要么在一些小店、街边闲逛。出行方式也不一样，中国人大都选择租车包车出行，赶各种景点；欧美人不是在酒店里，就是在海边游泳冲浪；要不就是在外面租辆摩托车到处跑。家庭度假方式也不一样，中国人大都是两口子带一个孩子，甚至3、4个大人带一个孩子；欧美人则是两口子带2到3个孩子，我们碰到的那一家最大的才4、5岁，中间的2岁多，最小的还是婴儿。&lt;/p&gt;
-
-&lt;p&gt;而这些差异最根本的还是社会、环境、文化的差异，别人习以为常的事情，在我们看来会很不解，反之也亦然。但这趟行程也让我们收获不少，增强家庭成员的感情、更正确的教育孩子的方式、开阔孩子以及大人的眼界等等。&lt;/p&gt;
-
-&lt;p&gt;还有很重要的一点就是，感受到人与生俱来的对自由的向往，回国后正好看到一篇文章说自由的三个层次，一个是财务的自由，这个毋庸置疑，自由是需要经济基础的，然后是迁徙的自由，人们可以去到任何想去的地方，安全、语言、文化都有能力把握好，最后是精神的自由，追求物质世界和精神世界的合一，并互相影响，以此完善自我，并影响世界。我想这个世界没有多少人可以实现哪怕最初级的财务自由，还是让我们在实现财务自由的道路上，努力奔跑吧。&lt;/p&gt;
-
-&lt;p&gt;落地北京是早上7点多，大家在免税店痛快的shopping了一把，当然主要还是以化妆品为主，比香港的还便宜，老婆到家后就后悔买少了。&lt;/p&gt;
-
-&lt;p&gt;头天晚上北京下了很大的雨，没想到第二天的天这么蓝，完全没有雾霾，甚至超过了南半球的印度洋上的蓝天，你更喜欢哪种蓝天呢？&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/blog/bali/19.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-</content>
-   </entry>
-   
-   <entry>
-     <title>Spring MVC + Mybatis + MySQL CRUD Demo</title>
-     <link href="http://www.qiuliang.net/java/2014/07/04/Spring%20MVC-Mybatis-MySQL-CRUD-Demo.html"/>
-     <updated>2014-07-04T00:00:00+08:00</updated>
-     <id>http://www.qiuliang.net/java/2014/07/04/Spring MVC-Mybatis-MySQL-CRUD-Demo</id>
-     <content type="html">&lt;p&gt;本文档结合&lt;code&gt;Spring MVC&lt;/code&gt;、&lt;code&gt;Mybatis&lt;/code&gt;、&lt;code&gt;MySQL&lt;/code&gt;，说明如何实现一个简单的数据库单表CRUD操作。开发工具使用集成了spring mvc的eclipse（Spring Tool Suite，简称STS）。&lt;/p&gt;
-
-&lt;p&gt;[TOC]&lt;/p&gt;
-
-&lt;h2 id=&quot;section&quot;&gt;基础环境说明&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Mac OS X &lt;code&gt;10.9.4&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;jre version &lt;code&gt;1.8.0_05&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;java sdk &lt;code&gt;1.8.0_05&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;STS &lt;code&gt;3.5.1&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;maven &lt;code&gt;3.2.2&lt;/code&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;以上环境安装配置好后，就可以开始demo程序了。&lt;/p&gt;
-
-&lt;h3 id=&quot;mysql&quot;&gt;MySQL建表语句&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sql&quot; data-lang=&quot;sql&quot;&gt;&lt;span class=&quot;k&quot;&gt;CREATE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;TABLE&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;`&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;`&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;11&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;NOT&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;NULL&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AUTO_INCREMENT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;`&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;varchar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;NOT&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;`&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;11&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;NOT&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;PRIMARY&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;KEY&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ENGINE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;InnoDB&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AUTO_INCREMENT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DEFAULT&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CHARSET&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;big5&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;step-1-spring-mvc&quot;&gt;Step 1 新建spring mvc项目&lt;/h2&gt;
-
-&lt;p&gt;使用STS新建一个spring mvc project，建立好项目后，一个基本的spring mvc web项目已经搭建好，我们只需要在这之上配置好相关的beans，以及编写CRUD相关的代码。&lt;/p&gt;
-
-&lt;p&gt;可以注意一下项目中的&lt;code&gt;web.xml&lt;/code&gt;、&lt;code&gt;servlet-context.xml&lt;/code&gt;，STS已经帮我们把跟spring相关的基本配置项配置好。&lt;/p&gt;
-
-&lt;p&gt;例如：web.xml中定义了请求由spring接管，以及IOC相关的配置文件名称。&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- Processes application requests --&amp;gt;&lt;/span&gt;
-	&lt;span class=&quot;nt&quot;&gt;&amp;lt;servlet&amp;gt;&lt;/span&gt;
-		&lt;span class=&quot;nt&quot;&gt;&amp;lt;servlet-name&amp;gt;&lt;/span&gt;appServlet&lt;span class=&quot;nt&quot;&gt;&amp;lt;/servlet-name&amp;gt;&lt;/span&gt;
-		&lt;span class=&quot;nt&quot;&gt;&amp;lt;servlet-class&amp;gt;&lt;/span&gt;org.springframework.web.servlet.DispatcherServlet&lt;span class=&quot;nt&quot;&gt;&amp;lt;/servlet-class&amp;gt;&lt;/span&gt;
-		&lt;span class=&quot;nt&quot;&gt;&amp;lt;init-param&amp;gt;&lt;/span&gt;
-			&lt;span class=&quot;nt&quot;&gt;&amp;lt;param-name&amp;gt;&lt;/span&gt;contextConfigLocation&lt;span class=&quot;nt&quot;&gt;&amp;lt;/param-name&amp;gt;&lt;/span&gt;
-            &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- IOC配置文件 --&amp;gt;&lt;/span&gt;
-			&lt;span class=&quot;nt&quot;&gt;&amp;lt;param-value&amp;gt;&lt;/span&gt;/WEB-INF/spring/appServlet/servlet-context.xml&lt;span class=&quot;nt&quot;&gt;&amp;lt;/param-value&amp;gt;&lt;/span&gt;
-		&lt;span class=&quot;nt&quot;&gt;&amp;lt;/init-param&amp;gt;&lt;/span&gt;
-		&lt;span class=&quot;nt&quot;&gt;&amp;lt;load-on-startup&amp;gt;&lt;/span&gt;1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/load-on-startup&amp;gt;&lt;/span&gt;
-	&lt;span class=&quot;nt&quot;&gt;&amp;lt;/servlet&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;step-2-mavenjar&quot;&gt;Step 2 使用maven加载所需的jar包&lt;/h2&gt;
-
-&lt;p&gt;如果使用独立安装的maven程序，需要在eclipse中指定maven的路径：&lt;/p&gt;
-
-&lt;p&gt;Preferences – Maven – Installations&lt;/p&gt;
-
-&lt;p&gt;例如，我的路径是：/usr/local/maven/maven3.2.2&lt;/p&gt;
-
-&lt;p&gt;maven配置好后，就可以在pom文件中添加相关的依赖项了，需要添加的相关依赖配置如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-context-support&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;${org.springframework-version}&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-jdbc&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;${org.springframework-version}&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- mybatis --&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;mysql&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;mysql-connector-java&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;5.1.31&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;commons-dbcp&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;commons-dbcp&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.4&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.mybatis&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;mybatis-spring&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.2.2&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.mybatis&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;mybatis&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;3.2.7&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;需要注意跟spring相关的jar包的版本问题&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;保存pom文件后会自动根据配置文件下载所需的jar包。&lt;/p&gt;
-
-&lt;h2 id=&quot;step-3-&quot;&gt;Step 3 主要配置示例&lt;/h2&gt;
-
-&lt;h3 id=&quot;bean&quot;&gt;bean相关配置&lt;/h3&gt;
-&lt;p&gt;在servlet-context.xml配置文件中增加如下的bean，注意schema格式&lt;/p&gt;
-
-&lt;p&gt;数据源：&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;&lt;span class=&quot;c&quot;&gt;&amp;lt;!--数据源：--&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;beans:bean&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;id=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;dataSource&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;class=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;org.apache.commons.dbcp.BasicDataSource&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;lazy-init=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;default&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;autowire=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;default&amp;quot;&lt;/span&gt;  &lt;span class=&quot;err&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;beans:property&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;driverClassName&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;com.mysql.jdbc.Driver&amp;quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;/beans:property]]&amp;gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;beans:property&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;url&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;jdbc:mysql://127.0.0.1:3306/remember&amp;quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;/beans:property]]&amp;gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;beans:property&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;username&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;root&amp;quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;/beans:property]]&amp;gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;beans:property&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;password&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;123456&amp;quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;/beans:property]]&amp;gt;
-      
-   &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;/beans:bean]]&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Mybatis Sql Session配置：
-&amp;gt; 由spring接管的mybatis session，configLocation配置的value要和实际的mybatis配置文件一致。&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;beans:bean&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;id=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sqlSessionFactory&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;class=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;org.mybatis.spring.SqlSessionFactoryBean&amp;quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;beans:property&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;configLocation&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;classpath:springdemo-mybatis-config.xml&amp;quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;/beans:property]]&amp;gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;beans:property&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;dataSource&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;ref=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;dataSource&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;/beans:bean]]&amp;gt; 
- 
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;beans:bean&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;class=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;org.mybatis.spring.mapper.MapperScannerConfigurer&amp;quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;beans:property&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;basePackage&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;ql.mac.springdemo&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;/beans:bean]]&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;mybatis&quot;&gt;Mybatis主配置文件&lt;/h3&gt;
-
-&lt;p&gt;springdemo-mybatis-config.xml配置文件示例如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;&lt;span class=&quot;cp&quot;&gt;&amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot;?&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;cp&quot;&gt;&amp;lt;!DOCTYPE configuration&lt;/span&gt;
-&lt;span class=&quot;cp&quot;&gt;    PUBLIC &amp;quot;-//mybatis.org//DTD Config 3.0//EN&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;cp&quot;&gt;    &amp;quot;http://mybatis.org/dtd/mybatis-3-config.dtd&amp;quot;]]&amp;gt;&lt;/span&gt;
- 
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;configuration&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;settings&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;setting&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;cacheEnabled&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;setting&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;lazyLoadingEnabled&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;setting&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;aggressiveLazyLoading&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;false&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt; 
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;setting&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;multipleResultSetsEnabled&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;setting&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;useColumnLabel&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;setting&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;useGeneratedKeys&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;false&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;setting&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;autoMappingBehavior&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;PARTIAL&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;setting&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;defaultExecutorType&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;SIMPLE&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;setting&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;defaultStatementTimeout&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;25000&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;setting&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;safeRowBoundsEnabled&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;false&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;setting&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;mapUnderscoreToCamelCase&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;false&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;setting&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;localCacheScope&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;SESSION&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;setting&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;jdbcTypeForNull&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;OTHER&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;setting&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;lazyLoadTriggerMethods&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;equals,clone,hashCode,toString&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;/settings]]&amp;gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;typeAliases&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;typeAlias&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;alias=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;User&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;type=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;ql.mac.springdemo.model.User&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;/typeAliases]]&amp;gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;mappers&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;nt&quot;&gt;&amp;lt;mapper&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;resource=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;mapper/user.xml&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;/mappers]]&amp;gt;
-&lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;/configuration]]&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;mapper&quot;&gt;mapper文件&lt;/h3&gt;
-&lt;p&gt;例如：mapper/user.xml&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;&lt;span class=&quot;cp&quot;&gt;&amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot;?&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;cp&quot;&gt;&amp;lt;!DOCTYPE mapper PUBLIC &amp;quot;-//mybatis.org//DTD Mapper 3.0//EN&amp;quot;   &amp;quot;http://mybatis.org/dtd/mybatis-3-mapper.dtd&amp;quot;&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;mapper&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;namespace=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;ql.mac.springdemo.da.UserMapper&amp;quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt; 
-       
-    
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;select&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;id=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;get&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;parameterType=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;int&amp;quot;&lt;/span&gt;  &lt;span class=&quot;na&quot;&gt;resultType=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;User&amp;quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-      select * from user where ID=#{id};
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/select&amp;gt;&lt;/span&gt;
-     
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;insert&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;id=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;insert&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;parameterType=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;User&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-      insert into user values (#{id}, #{name}, #{age});
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/insert&amp;gt;&lt;/span&gt;
-    
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;update&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;id=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;update&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;parameterType=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;User&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-      update user set name=#{name},age=#{age} where id=#{id};
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/update&amp;gt;&lt;/span&gt;
-  
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/mapper&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;step-4-&quot;&gt;Step 4 主要代码&lt;/h2&gt;
-
-&lt;h3 id=&quot;model&quot;&gt;定义Model&lt;/h3&gt;
-&lt;p&gt;User.java&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;kn&quot;&gt;package&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;mac&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;springdemo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-
-&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;User&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-	&lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-	&lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-	&lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-
-	&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;getName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-		&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-	&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-	&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;setName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-		&lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-	&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-	&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;getAge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-		&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-	&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-	&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;setAge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-		&lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;age&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-	&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-	&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;getId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-		&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-	&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-	&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;setId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-		&lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-	&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;crud&quot;&gt;定义CRUD操作接口&lt;/h3&gt;
-&lt;p&gt;UserMapper.java&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;kn&quot;&gt;package&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;mac&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;springdemo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;da&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;ql.mac.springdemo.model.User&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-
-&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;UserMapper&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-	&lt;span class=&quot;n&quot;&gt;User&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-	&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;insert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;User&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;u&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-	&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;update&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;User&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;u&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;action&quot;&gt;编写Action&lt;/h3&gt;
-
-&lt;p&gt;在Controller中增加CRUD相关的action。需要先将数据操作的mapper类注入到controller中，增加代码如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;nd&quot;&gt;@Autowired&lt;/span&gt;
-&lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UserMapper&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_userMapper&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h4 id=&quot;get&quot;&gt;get一个数据实体&lt;/h4&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;nd&quot;&gt;@RequestMapping&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;/get/{id}&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;method&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RequestMethod&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;GET&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nd&quot;&gt;@PathVariable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;id&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Model&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;User&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;u&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_userMapper&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;addAttribute&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;user&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;u&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-
-    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;user&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;注解RequestMapping说明对应的url，以及http method，其中{id}代表URL参数，和action中的参数id对应，同时需要在参数id前增加注解：@PathVariable(“id”)&lt;/p&gt;
-
-&lt;p&gt;这里使用spring内置的model传递参数到view，在页面上可以采用如下语句获取数据实体内容。&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;div&amp;gt;&lt;/span&gt;
-	&lt;span class=&quot;nt&quot;&gt;&amp;lt;p&amp;gt;&lt;/span&gt;
-		&lt;span class=&quot;nt&quot;&gt;&amp;lt;strong&amp;gt;&lt;/span&gt;Id&lt;span class=&quot;nt&quot;&gt;&amp;lt;/strong&amp;gt;&lt;/span&gt;
-		&lt;span class=&quot;nt&quot;&gt;&amp;lt;span&amp;gt;&lt;/span&gt;${user.getId()}&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-	&lt;span class=&quot;nt&quot;&gt;&amp;lt;/p&amp;gt;&lt;/span&gt;
-	&lt;span class=&quot;nt&quot;&gt;&amp;lt;p&amp;gt;&lt;/span&gt;
-		&lt;span class=&quot;nt&quot;&gt;&amp;lt;strong&amp;gt;&lt;/span&gt;Name&lt;span class=&quot;nt&quot;&gt;&amp;lt;/strong&amp;gt;&lt;/span&gt;
-		&lt;span class=&quot;nt&quot;&gt;&amp;lt;span&amp;gt;&lt;/span&gt;${user.getName()}&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-	&lt;span class=&quot;nt&quot;&gt;&amp;lt;/p&amp;gt;&lt;/span&gt;
-	&lt;span class=&quot;nt&quot;&gt;&amp;lt;p&amp;gt;&lt;/span&gt;
-		&lt;span class=&quot;nt&quot;&gt;&amp;lt;strong&amp;gt;&lt;/span&gt;Age&lt;span class=&quot;nt&quot;&gt;&amp;lt;/strong&amp;gt;&lt;/span&gt;
-		&lt;span class=&quot;nt&quot;&gt;&amp;lt;span&amp;gt;&lt;/span&gt;${user.getAge()}&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-	&lt;span class=&quot;nt&quot;&gt;&amp;lt;/p&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h4 id=&quot;insert&quot;&gt;insert一个数据实体&lt;/h4&gt;
-
-&lt;p&gt;add的get方法&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;nd&quot;&gt;@RequestMapping&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;/add&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;method&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RequestMethod&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;GET&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-	&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Insert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-		&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;add&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-	&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;add的post方法&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;nd&quot;&gt;@RequestMapping&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;/add&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;method&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RequestMethod&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;POST&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;nd&quot;&gt;@ResponseBody&lt;/span&gt;
-&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Insert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;User&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;u&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;_userMapper&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;insert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;u&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;insert a new user&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;对应的view&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;form&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;action=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;method=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;post&amp;quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-	&lt;span class=&quot;nt&quot;&gt;&amp;lt;div&amp;gt;&lt;/span&gt;
-		&lt;span class=&quot;nt&quot;&gt;&amp;lt;p&amp;gt;&lt;/span&gt;
-			&lt;span class=&quot;nt&quot;&gt;&amp;lt;input&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;type=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;text&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;${user.getId()}&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;id&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-		&lt;span class=&quot;nt&quot;&gt;&amp;lt;/p&amp;gt;&lt;/span&gt;
-		&lt;span class=&quot;nt&quot;&gt;&amp;lt;p&amp;gt;&lt;/span&gt;
-			&lt;span class=&quot;nt&quot;&gt;&amp;lt;strong&amp;gt;&lt;/span&gt;Name&lt;span class=&quot;nt&quot;&gt;&amp;lt;/strong&amp;gt;&lt;/span&gt;
-			&lt;span class=&quot;nt&quot;&gt;&amp;lt;input&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;type=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;text&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;${user.getName()}&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-		&lt;span class=&quot;nt&quot;&gt;&amp;lt;/p&amp;gt;&lt;/span&gt;
-		&lt;span class=&quot;nt&quot;&gt;&amp;lt;p&amp;gt;&lt;/span&gt;
-			&lt;span class=&quot;nt&quot;&gt;&amp;lt;strong&amp;gt;&lt;/span&gt;Age&lt;span class=&quot;nt&quot;&gt;&amp;lt;/strong&amp;gt;&lt;/span&gt;
-			&lt;span class=&quot;nt&quot;&gt;&amp;lt;input&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;type=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;text&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;${user.getAge()}&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;age&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-		&lt;span class=&quot;nt&quot;&gt;&amp;lt;/p&amp;gt;&lt;/span&gt;
-	&lt;span class=&quot;nt&quot;&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
-	
-	&lt;span class=&quot;nt&quot;&gt;&amp;lt;div&amp;gt;&lt;/span&gt;
-		&lt;span class=&quot;nt&quot;&gt;&amp;lt;input&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;type=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;submit&amp;quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;value=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Submit&amp;quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-	&lt;span class=&quot;nt&quot;&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/form&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;其他update和delete操作和上面基本类似，至此一个简单的单表CRUD程序已经能run起来了。&lt;/p&gt;
-</content>
-   </entry>
-   
-   <entry>
-     <title>2013，从激情到平静</title>
-     <link href="http://www.qiuliang.net/life/2014/03/02/life-summary-2013.html"/>
-     <updated>2014-03-02T00:00:00+08:00</updated>
-     <id>http://www.qiuliang.net/life/2014/03/02/life-summary-2013</id>
-     <content type="html">&lt;h2 id=&quot;section&quot;&gt;为何开始&lt;/h2&gt;
-
-&lt;p&gt;每年写一篇相对长一些的自我总结，渐成一个习惯，即使很忙很苦逼，也要强迫自己完成这个事情，或许这对将来，意义重大。
-正好2013年在32岁生日那天，也写下了一篇感悟，过几个月再看，又是一番滋味，从中总结经验教训，即使更多的时候是看从前的一些傻逼不成熟的思考，也挺有意思，因此，2013年总结的主题是“从激情到平静”。&lt;/p&gt;
-
-&lt;p&gt;而每年都会有一些类似鸡汤的话语，在我困惑、充满负能量的时候，大喝一通作为鸡血来使用，现在能想起来的，比如：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;（2009）follow your heart&lt;/li&gt;
-  &lt;li&gt;（2012）无所畏惧&lt;/li&gt;
-  &lt;li&gt;（2013）但行好事，莫问前程&lt;/li&gt;
-  &lt;li&gt;（2014）要是方向错了，再努力都是特么的白费&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;等等，还有很多记不起来，或多或少左右我的三观，虽到目前为止，还未能让我的人生有质的变化。还是且行且思吧。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-1&quot;&gt;保持激情&lt;/h2&gt;
-
-&lt;p&gt;保持激情，这话或听或看了无数遍，有老板对下属，有各种高大上人士的鸡汤，有自己心里面的正义小人对邪恶小人。总之，在充满竞争的北上广深，要时刻让自己处于充血状态，才有可能让自己过得稍微好一些。&lt;/p&gt;
-
-&lt;p&gt;其实生活中也没有必要无时无刻保持激情，人也必然不是汽车，加满油后又能跑500公里。适当的放松和放纵也未尝不可，当然这不是颓废的理由。&lt;/p&gt;
-
-&lt;h2 id=&quot;mac&quot;&gt;Mac和生活&lt;/h2&gt;
-
-&lt;p&gt;对审美的追求，前些天终于在同事的蛊惑下，在自己的不坚定意志面前，买了一台mac book pro，虽然现在工作需要，还是要在上面装个虚机跑windows，即使大部分时间在win下而非mac下（这在某些人眼里看来，的确是很傻逼的行为），但还是要逐渐去体会一件杰出科技工艺品带给我们的生活情趣和审美的提升。而我也一直相信，审美的提高，也会让自己对自身要求提高，对工作对事情的要求提高，进而影响三观，带来人生格局的变化，好的工具是会提高生产力的，这应该是一件高投资回报率的事情。&lt;/p&gt;
-
-&lt;p&gt;其实有关mac带来审美的变化，大多都是我道听途说，使用windows久了之后，再去适应一个新系统，应该是一件比较痛苦的事情，也会有诸多不便，不管怎样，从舒适区跳出来，尝试一下，或许有更好的风景。
-希望自己在明年的总结时，能分享出更多的关于mac带来的改变。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-2&quot;&gt;创业&lt;/h2&gt;
-
-&lt;p&gt;前几年的总结写了很多有关创业的想法，各种逆袭的故事也曾让我蠢蠢欲动。可自己也似乎一直是没做好放手一搏的准备，在我看来，创业意味着全力以赴、意味着放弃现在的很多东西、意味着承受更大的压力。在现在还没有看清方向的时候，还是暂且放一放。但梦想还是要有的，万一实现了呢？&lt;/p&gt;
-
-&lt;h2 id=&quot;section-3&quot;&gt;所谓平静&lt;/h2&gt;
-
-&lt;p&gt;所谓平静，我的理解更多的是顺其自然，尽自己所能，而非逆势而为。14年春节过后，广大有志青年开始周期性运动，各自奔赴承载着梦想的北上广深，而我也携老婆孩子，从老家到北京5.9环自己的“家”中，开始新一年的打拼。虽然近几年的情况比之前好了很多，但也难免会思考，这样做的意义在哪？这个问题肯定不止我一人在想，从知乎上年后最火爆的话题“为什么很多北上广深打拼的游子，远离亲人仍义无反顾”可以看出，这其实是一个社会性问题。&lt;/p&gt;
-
-&lt;p&gt;我认真的看完了知乎上这个问题几乎所有的答案，自然是有很强的共鸣，但似乎还是没有找到我最想要看到的答案。。。其实，不是大家想不到，而这的确是一个没有答案的问题，或者更准确的说，对每个人来讲，这个问题的答案都不一样。&lt;/p&gt;
-
-&lt;p&gt;或许一首歌的歌词，可以道出大多数人的心声：&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;我们决定了要在这座繁华的城市里忙碌的生活着
-为了那些不太确定的未来在努力的寻求着&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;strong&gt;摘自《北京如果》&lt;/strong&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;section-4&quot;&gt;逃离北京？&lt;/h2&gt;
-
-&lt;p&gt;随着小区不是北师大学区房的消息越传越广，离开北京的话题，也经常成为我和老婆讨论的焦点。可是离开之后去哪儿？却又是还没想明白的事情。老婆一直是坚定的偏向于离开北京的，而我却有着诸多顾虑，总觉得北京有很多值得留在这的理由，可是，北京是很好，可跟我有半毛钱关系吗？&lt;/p&gt;
-
-&lt;p&gt;北京有着全国最优质的教育资源，可我们家不是北京户口；北京有着全国最优质的医疗资源，可看病的不易相信每个北漂都深有体会，看个感冒都得排队2小时的场景至今让我对医院充满恐惧；北京有着全国最便宜的公交系统，可上下班拥挤的地铁让我还没到公司就已经身心疲惫；北京有着全国最多的工作机会，可人才的竞争程度之激烈，也是全国之最，我们的总监，永远是部门里来的最早，走的最晚的人，周末的加班也经常看到他的身影，别人光鲜的表面，是靠努力和汗水换回来的，而在很多时候，你付出的再多，也不一定是有收获的，聪明的头脑、胆识、眼界太多重要的因素了。你确定你就是那个最努力、最聪明的人？北京是中国的首都，可空气质量却排在倒数10位以内，即使侥幸在房价飞涨之前买了房，可你看看周围的环境，脏乱的街道、拥挤的等公交的人群、还有路边店铺、商贩发出的震耳欲聋的噪音、干燥的灰尘弥漫的空气、排成长龙的汽车和大量的人群，拥挤在红绿灯的路口，争分夺秒的抢着先通过。北京有着全国最好的道路交通秩序，可对于未赶上京牌末班车的我，只好尴尬的上一个天津牌照来解决刚需，而刚出的外地牌照限行新政，则直接拍死了我平时的用车需求，除非我只在六环及以外的远郊县开车。可我的家好歹住在5.9环，出去加个油都提心吊胆绕着走，这让我情何以堪啊。&lt;/p&gt;
-
-&lt;p&gt;这些，其实也不是北京的错。是谁的错，我也不知道。但这样的生活显然不是我所希望的，别的地方会好点么？答案对我来说未知。&lt;/p&gt;
-
-&lt;p&gt;北京同样具有很多优势，北京的人文环境应该是国内一流的，这也许是我离开北京后最担心的问题，简单的人际关系、相对公平的规则，让我觉得生活相对轻松；北京的冬天很好过，哪里都有暖气，寒冷的冬天在暖气房间里穿着短衣短裤，这是出生在江南的我之前难以想象的，可怕的是现在已经非常习惯这样过冬了，每年春节回老家过年都是一种煎熬。当然最有诱惑力的还是北京也是互联网行业最发达的地区，薪资待遇平均最高且机会众多，虽谈不上什么事业，可这也许是最离不开的理由，也是最大的优势。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-5&quot;&gt;家庭&lt;/h2&gt;
-
-&lt;p&gt;给家人一个健康、幸福的生活，是我一直在追求的目标。这个目标和是否离开北京这个命题的关系，到现在也还没彻底想明白，也许本身并不矛盾。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-6&quot;&gt;究竟要什么？&lt;/h2&gt;
-
-&lt;p&gt;要的是一种生活状态。是一种内心强大、平和的感受，而非所谓的光环和看上去光鲜的表象。&lt;/p&gt;
-
 </content>
    </entry>
    

@@ -1,15 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <!--
-     **
-     * Author:         掌心
-     * Contact:        zhanxin.info@gmail.com
-     * Theme Name:     Violet ( Violet 主题代表着一种颜色，一种情感，还有一种美)
-     * Create Date:    2013.10
-     * Update:         2014.09
-     **
-    -->
+    
     <meta charset="utf-8" />
     <title>
         
@@ -22,18 +14,18 @@
     <meta name="keywords" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <!-- //页面样式 -->
-    <link rel="stylesheet" href="http://www.qiuliang.net/themes/violet/css/style.css" type="text/css" />
+    <link rel="stylesheet" href="http://qiuliang.github.io/themes/violet/css/style.css" type="text/css" />
     <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
     <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css" rel="stylesheet">
-    <link href='http://fonts.googleapis.com/css?family=Spirax' rel='stylesheet' type='text/css'>
-    <link rel="shortcut icon" href="http://www.qiuliang.net/themes/violet/images/favicon.ico" type="image/x-icon" />
+    <!--<link href='http://fonts.googleapis.com/css?family=Spirax' rel='stylesheet' type='text/css'>-->
+    <!--<link rel="shortcut icon" href="http://qiuliang.github.io/themes/violet/images/favicon.ico" type="image/x-icon" />-->
     <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
 </head>
 <body id="violet">
     <div class="page-wrapper">
         <section class="head" id="violet-head">
             <header class="header" id="violet-header">
-                <h1 class="logo"><a href="http://www.qiuliang.net">Qiuliang's Site</a></h1>
+                <h1 class="logo"><a href="http://qiuliang.github.io">Qiuliang's Site</a></h1>
                 <h2 class="subtitle">做一个独立思考和具备创新能力的人，打造谦逊和强大的内心</h2>
             </header>
             <nav class="nav" id="violet-nav">
@@ -86,7 +78,7 @@
     <div class="violet-post">
         <p class="main-article-meta"><time pubdate="">2014-11-04</time></p>
         <div class="main-article-contant">
-            <h4 id="section">基本操作</h4>
+            <p>####基本操作</p>
 
 <ul>
   <li>
@@ -173,17 +165,17 @@
   </li>
 </ul>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">git fetch <span class="c">#从远端下载内容到本地</span>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">git fetch <span class="c">#从远端下载内容到本地</span>
 git checkout your-local-branch
-git merge origin/remote-branch</code></pre></div>
+git merge origin/remote-branch</code></pre></figure>
 
 <ul>
   <li>从本地更新远端</li>
 </ul>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">git checkout your-local-branch <span class="c">#1，切换到当前分支</span>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">git checkout your-local-branch <span class="c">#1，切换到当前分支</span>
 git commit -a -m ‘commit’ <span class="c">#2，提交改动到本地仓库</span>
-git push origin remote-branch <span class="c">#3，更新远端</span></code></pre></div>
+git push origin remote-branch <span class="c">#3，更新远端</span></code></pre></figure>
 
 <pre><code>&gt;如果这个分支在远程仓库里对应不同的名称（如:experiment-by-bob）,你应该这么做：  git push origin experimental:experiment-by-bob
 </code></pre>
@@ -204,15 +196,15 @@ git push origin remote-branch <span class="c">#3，更新远端</span></code></p
   <li>回退到某次commit，或者在某次commit之间跳转</li>
 </ul>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>git reset —hard b0a21b2a7096f12c49b394abfb338fbc5da8093b</code></pre></div>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>git reset —hard b0a21b2a7096f12c49b394abfb338fbc5da8093b</code></pre></figure>
 
 <ul>
   <li>将回退的代码提交到远程</li>
 </ul>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>git push -u develop origin -f</code></pre></div>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>git push -u develop origin -f</code></pre></figure>
 
-<h4 id="tag">tag相关</h4>
+<p>####tag相关</p>
 
 <ul>
   <li>
@@ -248,12 +240,15 @@ git push origin remote-branch <span class="c">#3，更新远端</span></code></p
         <a class="prev" href="/mind/2014/11/04/how-to-use-fragmentary-time.html" rel="bookmark"><i class="fa fa-chevron-circle-left"></i>碎片时间</a>
         
         
+        <a class="next" href="/fastdfs/2014/11/19/file-storage-based-on-fastdfs.html" rel="bookmark">文件存储系统映射模块原理解析<i class="fa fa-chevron-circle-right"></i></a>
+        
     </div>
 </nav>
 <div class="comment">
     
         <div class="comment-cnt">
-            <div id="disqus_thread"></div>
+            
+
         </div>
     
 </div>
@@ -280,9 +275,9 @@ git push origin remote-branch <span class="c">#3，更新远端</span></code></p
         </footer>
     </div>
 
-    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/jquery-1.8.3.js"></script>
-    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/jquery-scrollTo.js"></script>
-    <script type="text/javascript" src="http://www.qiuliang.net/themes/violet/js/common.js"></script>
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/jquery-1.8.3.js"></script>
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/jquery-scrollTo.js"></script>
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/common.js"></script>
     <script type="text/javascript">
         var headImgArr = [];
         
@@ -304,19 +299,6 @@ git push origin remote-branch <span class="c">#3，更新远端</span></code></p
             "background-image": "url(" + headImgArr[item] + ")"
         });
     </script>
-    
-        
-        <script type="text/javascript">
-            //disqus
-            var disqus_shortname = 'qiuliang';
-            (function() {
-                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-                dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
-                (document.getElementsByTagName('head')[0] ||
-                    document.getElementsByTagName('body')[0]).appendChild(dsq);
-            })();
-        </script>
-        
     
 </body>
 </html>
