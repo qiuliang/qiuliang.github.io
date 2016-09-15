@@ -4,13 +4,158 @@
    <title>Qiuliang's Site</title>
    <link href="http://qiuliang.github.io/atom.xml" rel="self" type="application/atom+xml"/>
    <link href="http://qiuliang.github.io" rel="alternate" type="text/html" />
-   <updated>2016-06-03T09:59:52+08:00</updated>
+   <updated>2016-09-15T10:56:45+08:00</updated>
    <id>http://qiuliang.github.io</id>
    <author>
      <name></name>
      <email></email>
    </author>
 
+   
+   <entry>
+     <title>Java内存模型解析</title>
+     <link href="http://qiuliang.github.io/tech/2016/09/14/jvm-ram-module.html"/>
+     <updated>2016-09-14T00:00:00+08:00</updated>
+     <id>http://qiuliang.github.io/tech/2016/09/14/jvm-ram-module</id>
+     <content type="html">&lt;blockquote&gt;
+  &lt;p&gt;基于HotSpot虚拟机&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;section&quot;&gt;运行时数据区域&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;线程私有&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;程序计数器：相当于当前线程所执行字节码的行号指示器&lt;/li&gt;
+  &lt;li&gt;java虚拟机栈：局部变量表部分，存放编译期可知的各种基本数据类型，其中64位的long和double占用2个Slot，其他占用1个Slot&lt;/li&gt;
+  &lt;li&gt;本地方法栈：类似于java虚拟机栈，但本地方法栈为本地native方法服务&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;线程共享&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;java堆，被所有线程共享，在虚拟机启动时创建&lt;/li&gt;
+  &lt;li&gt;方法区，用于存放类信息、常量、静态变量，属于虚拟机的一个逻辑部分，但有个别名叫非堆（Non-Heap）&lt;/li&gt;
+  &lt;li&gt;直接内存，NIO可以使用Native函数直接分配堆外内存&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blog/2016/jvm-ram-module.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Sun HotSpot虚拟机使用永久代来实现方法区，因永久代有 -XX:MaxPermSize的上限， jdk 1.7以后，已经把原本放在方法区（永久代）中的字符串常量池移出&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;strong&gt;关于String.intern方法在JDK1.6和1.7中使用方法区内存方面的差异&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;String.intern是一个Native方法，如果字符串常量池中已包含一个等于此String对象的字符串，则返回常量池中代表这个字符串的String对象，否则，将此String对象包含的字符串添加到常量池中，并且返回String对象的引用。&lt;/p&gt;
+
+&lt;p&gt;在JDK1.6中，intern()方法会把首次遇到的字符串实例复制到永久代中，而JDK1.7中不再复制实例，只是在常量池中记录首次出现的实例引用，对内存占用有较大减少。&lt;/p&gt;
+
+&lt;p&gt;垃圾收集主要针对java堆，基本都采用分代收集算法。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;新生代&lt;/li&gt;
+  &lt;li&gt;老年代&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;还可以细分为：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Eden空间&lt;/li&gt;
+  &lt;li&gt;From Survivor空间&lt;/li&gt;
+  &lt;li&gt;To Survivor空间&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;在java堆中可能划分出多个线程私有的分配缓冲区（Thread Local Allocation Buffer，TLAB），
+主流虚拟机在分配java堆内存空间时，都可以进行扩展，通过 -Xmx 和 -Xms控制，如果空间不够时，则抛出OutOfMemoryError。&lt;/p&gt;
+
+&lt;h2 id=&quot;java&quot;&gt;Java堆中对象分配、布局和访问&lt;/h2&gt;
+
+&lt;h3 id=&quot;section-1&quot;&gt;对象分配&lt;/h3&gt;
+
+&lt;p&gt;从虚拟机的视角来看new一个java对象的过程：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;检查类对象是否在常量池中存在这个类对象的符号引用&lt;/li&gt;
+  &lt;li&gt;如果这个符号引用代表的类还没有加载、解析和初始化过，需要先执行相应的类加载过程&lt;/li&gt;
+  &lt;li&gt;为对象分配内存，两种方式：指针碰撞（Serial、ParNew等带Compact过程的收集器）、空闲列表（CMS这种基于Mark-Sweep算法的收集器）&lt;/li&gt;
+  &lt;li&gt;对对象进行必要的设置，包括是哪个类的实例、对象的哈希值、GC分代年龄，这些信息存放在对象头（Object Head）中&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;内存分配并发问题的两种解决方案：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;对分配内存的动作进行同步处理，保证更新操作的原子性&lt;/li&gt;
+  &lt;li&gt;按照线程划分不同的空间进行，TLAB，只有TLAB空间用完时，才需要同步锁定，可通过参数：-XX:+/-UseTLAB&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;section-2&quot;&gt;对象内存布局&lt;/h3&gt;
+
+&lt;p&gt;分三块区域：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;对象头（Header）&lt;/li&gt;
+  &lt;li&gt;实例数据（Instance Data）&lt;/li&gt;
+  &lt;li&gt;对齐填充（Padding）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;对象头存储两部分数据，第一部分是对象自身的运行时数据，例如：哈希值、GC分代年龄、锁状态标志、线程持有的锁等。另一部分是类型指针，虚拟机通过这个指针来确定属于哪个类的实例。
+实例数据存储程序代码中定义的各种字段内容。
+对齐填充区域用于补全对象的起始地址是8字节的整数倍。&lt;/p&gt;
+
+&lt;h3 id=&quot;section-3&quot;&gt;对象访问&lt;/h3&gt;
+
+&lt;p&gt;java程序通过栈上的引用指针来操作堆上的具体对象，具体如何访问取决于虚拟机的实现方式，主流有两种：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;使用句柄&lt;/li&gt;
+  &lt;li&gt;直接指针&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;两种方式各有优劣，简单来说，句柄方式在reference中存储的是稳定的句柄地址，但需要两次寻址以获得对象实例数据和类型数据。直接指针节省了一次指针定位的时间开销。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Sun HotSpot使用直接指针来访问数据。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;section-4&quot;&gt;内存分配相关异常&lt;/h2&gt;
+
+&lt;h3 id=&quot;javaoutofmemoryerror&quot;&gt;Java堆内存问题：OutOfMemoryError&lt;/h3&gt;
+
+&lt;p&gt;如果出现了OutOfMemoryError的异常，需要确定是出现了内存泄漏（Memory Leak）还是内存溢出（Memory Overflow）&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;内存泄漏的意思是说GC无法对对象进行自动回收，如果是溢出，就是说内存中的对象还必须存活但空间不够了&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;内存泄漏需要检查对象是通过怎样的路径和GC Roots相关联，内存溢出一般需要检查虚拟机堆参数：-Xms/-Xmx和物理内存的关系，以及从代码层面检查某些对象的生命周期。&lt;/p&gt;
+
+&lt;h3 id=&quot;stackoverflowerroroutofmemoryerror&quot;&gt;虚拟机栈内存问题：StackOverflowError和OutOfMemoryError&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;如果线程请求的栈深度大于虚拟机所允许的最大深度，将抛出StackOverflowError&lt;/li&gt;
+  &lt;li&gt;如果虚拟机在扩展栈时无法申请到足够的内存空间，则抛出OutOfMemoryError&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;栈容量由-Xss参数设定，-Xoss设置本地方法栈大小在HotSpot虚拟机中无效&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;strong&gt;虚拟机可用栈内存容量计算公式&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;进程最大内存容量 - 最大堆容量（Xmx）- 最大方法区容量（MaxPermSize）= 虚拟机栈内存总容量&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;根据以上公式，如果每个线程所分配的栈容量越大，则可建立的线程数量就会减少。在开发多线程应用时，如果出现内存溢出，在不能减少线程数或者增加物理内存的情况下，可以考虑减少最大堆和栈容量来换取更多的线程数。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;section-5&quot;&gt;参考&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html&quot;&gt;Sun HotSpot VM启动参数详解&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</content>
+   </entry>
    
    <entry>
      <title>基于GitLab API实现自动化任务</title>
@@ -884,49 +1029,6 @@ a.gsub!&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/&lt;span class=&quot;se&qu
 &lt;p&gt;如果上面的链接打开速度比较慢，请&lt;code&gt;翻墙&lt;/code&gt;，推荐翻墙服务：&lt;a href=&quot;http://refyt.com/?r=da2d2836b60e42ff&quot;&gt;云梯&lt;/a&gt;，该链接带有我的推荐码，你可以优惠10元，我可以得收益10元，谢谢！&lt;/p&gt;
 
 &lt;p&gt;Powered by Haroopad&lt;/p&gt;
-</content>
-   </entry>
-   
-   <entry>
-     <title>天才们的思维盛筵，《上帝掷骰子吗--量子物理史话》</title>
-     <link href="http://qiuliang.github.io/mind/2014/11/25/quantum-history.html"/>
-     <updated>2014-11-25T00:00:00+08:00</updated>
-     <id>http://qiuliang.github.io/mind/2014/11/25/quantum-history</id>
-     <content type="html">&lt;p&gt;最近“星际穿越”热映，周围关于宇宙的话题比比皆是，同事们的讨论、朋友圈的各种分析、影评。但宇宙究竟是个什么？时间又是个什么？是否真的存在虫洞？很难说清楚。&lt;/p&gt;
-
-&lt;p&gt;不禁让我想起几年前，一个同事推荐过的一本书，给我描述了几个故事，至今都印象深刻，一个是阿喀琉斯追龟辩、另一个是薛定谔的猫，虽说都是思维实验，但放到微观世界，似乎又很有道理，并且很诡异，这大大激发了我的兴趣，因当时并没有看完，决定找来这本书再看一遍：《上帝掷骰子吗–量子物理史话》。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;什么是量子&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;量子（quantum）是现代物理的重要概念。最早是M·普朗克在1900年提出的。他假设黑体辐射中的辐射能量是不连续的，只能取能量基本单位的整数倍。后来的研究表明，不但能量表现出这种不连续的分离化性质，其他物理量诸如角动量、自旋、电荷等也都表现出这种不连续的量子化现象。这同以牛顿力学为代表的经典物理有根本的区别。量子化现象主要表现在微观物理世界。描写微观物理世界的物理理论是量子力学。&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;取自百度百科的解释&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;strong&gt;阿喀琉斯追龟辩&lt;/strong&gt;&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;阿喀琉斯（Achilles）是史诗《伊利亚特》里的希腊大英雄，以“捷足”而著称。有一天他碰到一只乌龟，乌龟嘲笑他说：“别人都说你厉害，但我看你如果跟我赛跑，还追不上我。”
-阿喀琉斯大笑说：“这怎么可能。我就算跑得再慢，速度也有你的10倍，哪会追不上你？”
-乌龟说：“好，那我们假设一下。你离我有100米，你的速度是我的10倍。现在你来追我了，但当你跑到我现在这个位置，也就是跑了100米的时候，我也已经又向前跑了10米。当你再追到这个位置的时候，我又向前跑了1米，你再追1米，我又跑了1/10米……总之，你只能无限地接近我，但你永远也不能追上我。”&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;闭上眼睛想象一下，似乎挺有道理，阿喀琉斯似乎永远也追不上龟，是不是很有趣？如果时间和空间具备连续性，且能被无限分割下去，那么上面这个故事是可以成立的，显然，在实际当中阿喀琉斯永远可以追得上乌龟，这说明时间和空间不一定能这样无限分割下去，&lt;strong&gt;量子效应使得时间和空间的连续性丧失了&lt;/strong&gt;。时间的连续性丧失说明了什么？我的理解是在某种特定条件下，时光倒流、快进也许是有可能的。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;薛定谔的猫和平行宇宙&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;什么是薛定谔的猫？建议大家自行搜索，我想要说的是，薛定谔的猫本身是由奥地利科学家薛定谔想出来的，用于攻击量子理论的不完备性，即如果量子理论中的不确定性成立，那么这只猫在打开盒子前处于一种即死又活的叠加状态，这显然是不可理解的。但后期由埃弗雷特提出的“平行宇宙”理论（或称作多世界理论），确可以很好的解释这个问题，即这只猫会“分裂”于两个互相正交不相干的平行宇宙中，一个世界中的猫已经死了，另一个世界中的猫还活着。虽然这听起来更加的疯狂，但却可以用完美的数学方程解释，是基于量子力学朴实的、符合逻辑的结果。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;如果你不被量子所困扰，那说明你还没有开始了解量子。&lt;/strong&gt;又是一句很拗口的话，之所以把这篇文章的标题定为“天才们的思维盛筵”，也缘于此。虽说到现在，量子理论的应用已开始实实在在的影响到我们的生活，从半导体到核能、从激光到显微镜、从集成电路到智能手机、从基因科技到分子生物学。但还是没有人能够真正对它进行彻底的阐述和解释，或许到了真正被人们所了解的时代，那么时空穿越、远程星际航行、物体瞬移，似乎都有了可能性。&lt;/p&gt;
-
-&lt;p&gt;书中列举了很多枯燥的物理、数学公式，但也并不是一本理论读物，作者讲故事的手法值得赞一个，从赫兹的电磁实验开始，慢慢的可以说是人类近现代史上最聪明的天才科学家们逐一登场，牛顿、普朗克、爱因斯坦、麦克斯韦、波尔、海森堡、赫兹、薛定谔、惠更斯、冯.诺依曼等等。这些与量子物理相关的科学家和各种历史场景被作者缓慢而有力的铺开，气势恢宏。从以牛顿的经典力学为代表的近代物理，到后来被量子物理所颠覆，这些大师们究其一生，就为了探寻宇宙的终极奥义，关乎信仰和生命。&lt;/p&gt;
-
-&lt;p&gt;随着“意识论”、“观测论”、“平行宇宙论”等概念的提出，更是让我们瞠目结舌，这些有着明显主观唯心主义色彩的论调，和以因果论为基础且严谨的通俗物理理论，有着天壤之别。牛顿建立的经典力学体系在微观世界里，被各种实验推翻，轰然崩塌。即使以“相对论”作为成名绝技的爱因斯坦，也因无法理解量子世界的种种诡异行为，而站到了量子理论的对立面。&lt;/p&gt;
-
-&lt;p&gt;量子理论是如此的神奇，却又实实在在的影响着我们的生活，而我们，一个普通人，也许顺其自然，关心身边鲜活的每一个人（也许这个人只是一堆电子原子的组合，也许只是某个多维空间真正的本我的投影），获得真正的快乐和希望，才是对我们而言最有意义的。而我们对微观、宏观世界的了解，只是在碰到真正的问题时，帮我们多一些思考，多一些正确的选择。&lt;/p&gt;
-
-&lt;p&gt;到这儿这篇文章其实有点写不下去了，干脆草草结束，或许将来会有新的思考。&lt;/p&gt;
 </content>
    </entry>
    

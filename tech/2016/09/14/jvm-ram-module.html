@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta charset="utf-8" />
+    <title>
+        
+            Java内存模型解析
+                 
+    </title>
+    <meta name="generator" content="Jekyll" />
+    <meta name="author" content="" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <!-- //页面样式 -->
+    <link rel="stylesheet" href="http://qiuliang.github.io/themes/violet/css/style.css" type="text/css" />
+    <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css" rel="stylesheet">
+    <!--<link href='http://fonts.googleapis.com/css?family=Spirax' rel='stylesheet' type='text/css'>-->
+    <!--<link rel="shortcut icon" href="http://qiuliang.github.io/themes/violet/images/favicon.ico" type="image/x-icon" />-->
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body id="violet">
+    <div class="page-wrapper">
+        <section class="head" id="violet-head">
+            <header class="header" id="violet-header">
+                <h1 class="logo"><a href="http://qiuliang.github.io">Qiuliang's Site</a></h1>
+                <h2 class="subtitle">做一个独立思考和具备创新能力的人，打造谦逊和强大的内心</h2>
+            </header>
+            <nav class="nav" id="violet-nav">
+                <ul class="nav-list">
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="/index.html">
+                            首页
+                        </a>
+                        
+                    </li>
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="/archives.html">
+                            文章归档
+                        </a>
+                        
+                    </li>
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="/contact.html">
+                            联系我
+                        </a>
+                        
+                    </li>
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="https://github.com/qiuliang/qiuliang.github.io">
+                            View on github
+                        </a>
+                        
+                    </li>
+                    
+                </ul>
+            </nav>
+        </section>
+        <section class="main" id="violet-main">
+            <article class="main-article main-article-page">
+    <div class="violet-title">
+        <h3 class="violet-title-item">Java内存模型解析</h3>
+    </div>
+    <div class="violet-post">
+        <p class="main-article-meta"><time pubdate="">2016-09-14</time></p>
+        <div class="main-article-contant">
+            <blockquote>
+  <p>基于HotSpot虚拟机</p>
+</blockquote>
+
+<h2 id="section">运行时数据区域</h2>
+
+<p><strong>线程私有</strong></p>
+
+<ul>
+  <li>程序计数器：相当于当前线程所执行字节码的行号指示器</li>
+  <li>java虚拟机栈：局部变量表部分，存放编译期可知的各种基本数据类型，其中64位的long和double占用2个Slot，其他占用1个Slot</li>
+  <li>本地方法栈：类似于java虚拟机栈，但本地方法栈为本地native方法服务</li>
+</ul>
+
+<p><strong>线程共享</strong></p>
+
+<ul>
+  <li>java堆，被所有线程共享，在虚拟机启动时创建</li>
+  <li>方法区，用于存放类信息、常量、静态变量，属于虚拟机的一个逻辑部分，但有个别名叫非堆（Non-Heap）</li>
+  <li>直接内存，NIO可以使用Native函数直接分配堆外内存</li>
+</ul>
+
+<p><img src="/images/blog/2016/jvm-ram-module.png" alt="" /></p>
+
+<blockquote>
+  <p>Sun HotSpot虚拟机使用永久代来实现方法区，因永久代有 -XX:MaxPermSize的上限， jdk 1.7以后，已经把原本放在方法区（永久代）中的字符串常量池移出</p>
+</blockquote>
+
+<p><strong>关于String.intern方法在JDK1.6和1.7中使用方法区内存方面的差异</strong></p>
+
+<p>String.intern是一个Native方法，如果字符串常量池中已包含一个等于此String对象的字符串，则返回常量池中代表这个字符串的String对象，否则，将此String对象包含的字符串添加到常量池中，并且返回String对象的引用。</p>
+
+<p>在JDK1.6中，intern()方法会把首次遇到的字符串实例复制到永久代中，而JDK1.7中不再复制实例，只是在常量池中记录首次出现的实例引用，对内存占用有较大减少。</p>
+
+<p>垃圾收集主要针对java堆，基本都采用分代收集算法。</p>
+
+<ul>
+  <li>新生代</li>
+  <li>老年代</li>
+</ul>
+
+<p>还可以细分为：</p>
+
+<ul>
+  <li>Eden空间</li>
+  <li>From Survivor空间</li>
+  <li>To Survivor空间</li>
+</ul>
+
+<p>在java堆中可能划分出多个线程私有的分配缓冲区（Thread Local Allocation Buffer，TLAB），
+主流虚拟机在分配java堆内存空间时，都可以进行扩展，通过 -Xmx 和 -Xms控制，如果空间不够时，则抛出OutOfMemoryError。</p>
+
+<h2 id="java">Java堆中对象分配、布局和访问</h2>
+
+<h3 id="section-1">对象分配</h3>
+
+<p>从虚拟机的视角来看new一个java对象的过程：</p>
+
+<ul>
+  <li>检查类对象是否在常量池中存在这个类对象的符号引用</li>
+  <li>如果这个符号引用代表的类还没有加载、解析和初始化过，需要先执行相应的类加载过程</li>
+  <li>为对象分配内存，两种方式：指针碰撞（Serial、ParNew等带Compact过程的收集器）、空闲列表（CMS这种基于Mark-Sweep算法的收集器）</li>
+  <li>对对象进行必要的设置，包括是哪个类的实例、对象的哈希值、GC分代年龄，这些信息存放在对象头（Object Head）中</li>
+</ul>
+
+<p>内存分配并发问题的两种解决方案：</p>
+
+<ul>
+  <li>对分配内存的动作进行同步处理，保证更新操作的原子性</li>
+  <li>按照线程划分不同的空间进行，TLAB，只有TLAB空间用完时，才需要同步锁定，可通过参数：-XX:+/-UseTLAB</li>
+</ul>
+
+<h3 id="section-2">对象内存布局</h3>
+
+<p>分三块区域：</p>
+
+<ul>
+  <li>对象头（Header）</li>
+  <li>实例数据（Instance Data）</li>
+  <li>对齐填充（Padding）</li>
+</ul>
+
+<p>对象头存储两部分数据，第一部分是对象自身的运行时数据，例如：哈希值、GC分代年龄、锁状态标志、线程持有的锁等。另一部分是类型指针，虚拟机通过这个指针来确定属于哪个类的实例。
+实例数据存储程序代码中定义的各种字段内容。
+对齐填充区域用于补全对象的起始地址是8字节的整数倍。</p>
+
+<h3 id="section-3">对象访问</h3>
+
+<p>java程序通过栈上的引用指针来操作堆上的具体对象，具体如何访问取决于虚拟机的实现方式，主流有两种：</p>
+
+<ul>
+  <li>使用句柄</li>
+  <li>直接指针</li>
+</ul>
+
+<p>两种方式各有优劣，简单来说，句柄方式在reference中存储的是稳定的句柄地址，但需要两次寻址以获得对象实例数据和类型数据。直接指针节省了一次指针定位的时间开销。</p>
+
+<blockquote>
+  <p>Sun HotSpot使用直接指针来访问数据。</p>
+</blockquote>
+
+<h2 id="section-4">内存分配相关异常</h2>
+
+<h3 id="javaoutofmemoryerror">Java堆内存问题：OutOfMemoryError</h3>
+
+<p>如果出现了OutOfMemoryError的异常，需要确定是出现了内存泄漏（Memory Leak）还是内存溢出（Memory Overflow）</p>
+
+<blockquote>
+  <p>内存泄漏的意思是说GC无法对对象进行自动回收，如果是溢出，就是说内存中的对象还必须存活但空间不够了</p>
+</blockquote>
+
+<p>内存泄漏需要检查对象是通过怎样的路径和GC Roots相关联，内存溢出一般需要检查虚拟机堆参数：-Xms/-Xmx和物理内存的关系，以及从代码层面检查某些对象的生命周期。</p>
+
+<h3 id="stackoverflowerroroutofmemoryerror">虚拟机栈内存问题：StackOverflowError和OutOfMemoryError</h3>
+
+<ul>
+  <li>如果线程请求的栈深度大于虚拟机所允许的最大深度，将抛出StackOverflowError</li>
+  <li>如果虚拟机在扩展栈时无法申请到足够的内存空间，则抛出OutOfMemoryError</li>
+</ul>
+
+<blockquote>
+  <p>栈容量由-Xss参数设定，-Xoss设置本地方法栈大小在HotSpot虚拟机中无效</p>
+</blockquote>
+
+<p><strong>虚拟机可用栈内存容量计算公式</strong></p>
+
+<p>进程最大内存容量 - 最大堆容量（Xmx）- 最大方法区容量（MaxPermSize）= 虚拟机栈内存总容量</p>
+
+<blockquote>
+  <p>根据以上公式，如果每个线程所分配的栈容量越大，则可建立的线程数量就会减少。在开发多线程应用时，如果出现内存溢出，在不能减少线程数或者增加物理内存的情况下，可以考虑减少最大堆和栈容量来换取更多的线程数。</p>
+</blockquote>
+
+<h2 id="section-5">参考</h2>
+
+<ul>
+  <li><a href="http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html">Sun HotSpot VM启动参数详解</a></li>
+</ul>
+
+        </div>
+    </div>
+</article>
+<nav class="pagination fn-clear" id="violet-paging">
+    <div class="pagination-list">
+        
+        <a class="prev" href="/tech/2016/05/31/invoke-gitlab-api.html" rel="bookmark"><i class="fa fa-chevron-circle-left"></i>基于GitLab API实现自动化任务</a>
+        
+        
+    </div>
+</nav>
+<div class="comment">
+    
+        <div class="comment-cnt">
+            
+<div id="disqus_thread"></div>
+<script>
+var disqus_config = function () {
+	this.page.url = "http://www.qiuliang.net/tech/2016/09/14/jvm-ram-module.html"; // <--- use canonical URL
+	this.page.identifier = "/tech/2016/09/14/jvm-ram-module";
+};
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+
+s.src = '//qiuliang.disqus.com/embed.js'; // <--- use Disqus shortname
+
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+
+        </div>
+    
+</div>
+
+        </section>
+        <footer class="foot" id="violet-foot">
+            <div class="footer fn-clear">
+                <!--<h1 class="logo">Qiuliang's Site</h1>-->
+            </div>
+            <div class="copyright">
+                <div class="copyright-cnt fn-clear">
+                    
+                    <a class="follow" href="https://www.facebook.com/liang.qiu.1" target="_blank"><i class="fa fa-facebook"></i></a>
+                    
+                    <a class="follow" href="http://github.com/qiuliang" target="_blank"><i class="fa fa-github"></i></a>
+                    
+                    <a class="follow" href="http://www.zhanxin.info" target="_blank"><i class="fa fa-twitter"></i></a>
+                    
+                    <a class="follow" href="http://www.zhanxin.info" target="_blank"><i class="fa fa-rss"></i></a>
+                    
+                    <p class="text">© Powered by <a href="http://jekyllrb.com/">Jekyll</a>. Theme : <a href="http://www.zhanxin.info">Violet</a></p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/jquery-1.8.3.js"></script>
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/jquery-scrollTo.js"></script>
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/common.js"></script>
+    <script type="text/javascript">
+        var headImgArr = [];
+        
+            headImgArr.push("/themes/violet/images/hdbg01.jpg");
+        
+            headImgArr.push("/themes/violet/images/hdbg02.jpg");
+        
+            headImgArr.push("/themes/violet/images/hdbg03.jpg");
+        
+            headImgArr.push("/themes/violet/images/hdbg04.jpg");
+        
+        if(headImgArr.length <= 0) {
+            headImgArr = ["/themes/violet/images/hdbg03.jpg"];
+            var item = 0;
+        } else {
+            var item = Math.floor(Math.random() * (headImgArr.length));
+        }
+        $("#violet-head").css({
+            "background-image": "url(" + headImgArr[item] + ")"
+        });
+    </script>
+    
+</body>
+</html>

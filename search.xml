@@ -2,6 +2,12 @@
 <articles xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <article>
+	<title>Java内存模型解析</title>
+	<url>http://qiuliang.github.io/tech/2016/09/14/jvm-ram-module.html</url>
+	<date>2016-09-14</date>
+</article>
+
+<article>
 	<title>基于GitLab API实现自动化任务</title>
 	<url>http://qiuliang.github.io/tech/2016/05/31/invoke-gitlab-api.html</url>
 	<date>2016-05-31</date>
