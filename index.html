@@ -74,6 +74,17 @@
             
 <article class="main-article">
     <div class="violet-post">
+        <h3 class="main-article-title"><a href="/tech/2017/09/19/redis-pipeline-mget-mset.html" title="redis pipeline和mget、mset" rel="bookmark">redis pipeline和mget、mset</a></h3>
+        <p class="main-article-meta"><time pubdate="2017-09-19">2017-09-19</time></p>
+        <div class="main-article-contant">
+            <p>为什么需要pipeline？因为redis本身是基于request/response模式，每一个命令都需要等待上一个命令响应后进行处理，中间需要经过RTT（Round Time Trip，往返延时，表示发送端从发送数据开始，到发送端收到来自接收端的确认，所需要的时间。），并且需要频繁调用系统IO。</p>
+            <p class="main-article-more"><a href="/tech/2017/09/19/redis-pipeline-mget-mset.html" title="Read More" rel="nofollow">Read More</a></p>
+        </div>
+    </div>
+</article>
+
+<article class="main-article">
+    <div class="violet-post">
         <h3 class="main-article-title"><a href="/life/2017/04/25/family-education.html" title="孩子就是我们的影子：关于家庭教育的一点思考" rel="bookmark">孩子就是我们的影子：关于家庭教育的一点思考</a></h3>
         <p class="main-article-meta"><time pubdate="2017-04-25">2017-04-25</time></p>
         <div class="main-article-contant">
@@ -145,17 +156,6 @@
         <div class="main-article-contant">
             <p>在前一篇文章中，介绍了[如何利用jenkins来搭建一个持续集成平台](http://www.qiuliang.net/tech/2015/10/02/git-nexus-jenkins-ci.html)，该平台可以帮助我们完成从获取代码、编译、打包、部署等一系列的事情，极大的方便了我们的日常开发工作。</p>
             <p class="main-article-more"><a href="/tech/2015/10/18/jenkins-shell-restart-tomcat.html" title="Read More" rel="nofollow">Read More</a></p>
-        </div>
-    </div>
-</article>
-
-<article class="main-article">
-    <div class="violet-post">
-        <h3 class="main-article-title"><a href="/tech/2015/10/02/git-nexus-jenkins-ci.html" title="基于git、maven、nexus、jenkins搭建适合中小型技术团队的CI平台" rel="bookmark">基于git、maven、nexus、jenkins搭建适合中小型技术团队的CI平台</a></h3>
-        <p class="main-article-meta"><time pubdate="2015-10-02">2015-10-02</time></p>
-        <div class="main-article-contant">
-            <p>对于一个稍具规模的研发团队来说，每个角色都各司其职，如果没有一套很好的开发流程和管理手段，那在进行一些相对复杂的项目开发时，因开发流程不规范、管理和沟通效率低下带来的各种问题会层出不穷，大家也会手忙脚乱，不利于项目发展和团队配合。因此搭建一套适合自己团队的持续集成平台，是一个非常重要的事情，至少可以带来如下收益：</p>
-            <p class="main-article-more"><a href="/tech/2015/10/02/git-nexus-jenkins-ci.html" title="Read More" rel="nofollow">Read More</a></p>
         </div>
     </div>
 </article>

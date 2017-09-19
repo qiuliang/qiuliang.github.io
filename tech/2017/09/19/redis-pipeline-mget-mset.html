@@ -5,13 +5,13 @@
     <meta charset="utf-8" />
     <title>
         
-            Qiuliang's Site
+            redis pipeline和mget、mset
                  
     </title>
     <meta name="generator" content="Jekyll" />
     <meta name="author" content="" />
-    <meta name="description" content="这是 PIZn 的又一个博客，它是基于 Jekyll 搭建起来的。在这里，不仅仅是用来快速记录工作，学习，生活的一点一滴的地方，更是 PIZn 对 Jekyll 的学习和使用的一次有意义的实践。" />
-    <meta name="keywords" content="PIZn, GitHub, Jekyll, Plugins, Works, Archives, Quotes, Violet, css, html, javascript, wordpress, logo, design, geek" />
+    <meta name="description" content="为什么需要pipeline？因为redis本身是基于request/response模式，每一个命令都需要等待上一个命令响应后进行处理，中间需要经过RTT（Round Time Trip，往返延时，表示发送端从发送数据开始，到发送端收到来自接收端的确认，所需要的时间。），并且需要频繁调用系统IO。" />
+    <meta name="keywords" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <!-- //页面样式 -->
     <link rel="stylesheet" href="http://qiuliang.github.io/themes/violet/css/style.css" type="text/css" />
@@ -71,53 +71,94 @@
             </nav>
         </section>
         <section class="main" id="violet-main">
-            
-<article class="main-article">
+            <article class="main-article main-article-page">
+    <div class="violet-title">
+        <h3 class="violet-title-item">redis pipeline和mget、mset</h3>
+    </div>
     <div class="violet-post">
-        <h3 class="main-article-title"><a href="/resume/2012/03/20/tech-tree.html" title="技能树" rel="bookmark">技能树</a></h3>
-        <p class="main-article-meta"><time pubdate="2012-03-20">2012-03-20</time></p>
+        <p class="main-article-meta"><time pubdate="">2017-09-19</time></p>
         <div class="main-article-contant">
-            <p>技能树</p>
-            <p class="main-article-more"><a href="/resume/2012/03/20/tech-tree.html" title="Read More" rel="nofollow">Read More</a></p>
+            <h2 id="pipeline">为什么需要pipeline？</h2>
+
+<p>因为redis本身是基于request/response模式，每一个命令都需要等待上一个命令响应后进行处理，中间需要经过RTT（Round Time Trip，往返延时，表示发送端从发送数据开始，到发送端收到来自接收端的确认，所需要的时间。），并且需要频繁调用系统IO。</p>
+
+<h2 id="pipeline-1">pipeline应用场景</h2>
+
+<p>多个命令需要被及时提交，且这些命令的响应结果没有相互依赖。</p>
+
+<h2 id="section">好处</h2>
+
+<p>可较大提升性能</p>
+
+<h2 id="section-1">需要注意</h2>
+<ul>
+  <li>不要和常规命令client共用一个链接，因为pipeline是独占连接的，如果管道内命令太多，可能会造成请求超时</li>
+  <li>可发送命令数量受到客户端缓冲区大小限制，如超过限制，则flush到redis</li>
+  <li>redis server存在query buffer限制，默认是1GB，如果超过这个值，客户端会被强制断掉</li>
+  <li>redis server存在output buffer限制，受到maxmemory配置限制</li>
+  <li>要实现pipeline，同时需要服务器端和客户端的支持</li>
+  <li>redis cluster不建议使用pipeline，容易产生max redirect错误</li>
+  <li>twem proxy可以支持pipeline</li>
+</ul>
+
+<h2 id="section-2">局限性</h2>
+<p>当某个命令的执行需要依赖前一个命令的返回结果时，无法使用pipeline。</p>
+
+<h2 id="mgetmset">mget和mset</h2>
+
+<p>mset a “a1” b “b” c “c1”
+mget a b c </p>
+
+<p>mget和mset命令也是为了减少网络连接和传输时间所设置的，其本质和pipeline的应用区别不大，但是在特定场景下只能用pipeline实现，例如：</p>
+
+<pre><code>get a
+set b ‘1’
+incr b
+</code></pre>
+
+<p>pipeline适合执行这种连续，且无相关性的命令。</p>
+
+<blockquote>
+  <p>根据大家的测试反馈，在key数量非常多的时候，mget命令性能可能优于pipeline。（未做实测考证）</p>
+</blockquote>
+
+
         </div>
     </div>
 </article>
-
-<article class="main-article">
-    <div class="violet-post">
-        <h3 class="main-article-title"><a href="/javascript/2011/04/27/web-javascript-this.html" title="JavaScript中的this" rel="bookmark">JavaScript中的this</a></h3>
-        <p class="main-article-meta"><time pubdate="2011-04-27">2011-04-27</time></p>
-        <div class="main-article-contant">
-            <p>如果是一个全局的function，则this相当于window对象，在function里定义的各种属性或者方法可以在function外部访问到，前提是这个function需要被调用。</p>
-            <p class="main-article-more"><a href="/javascript/2011/04/27/web-javascript-this.html" title="Read More" rel="nofollow">Read More</a></p>
-        </div>
-    </div>
-</article>
-
-
 <nav class="pagination fn-clear" id="violet-paging">
-    <ul class="pagination-list">
+    <div class="pagination-list">
         
-            
-                <li><a href="http://qiuliang.github.io/">1</a></li>
-            
+        <a class="prev" href="/life/2017/04/25/family-education.html" rel="bookmark"><i class="fa fa-chevron-circle-left"></i>孩子就是我们的影子：关于家庭教育的一点思考</a>
         
-            
-                <li><a href="http://qiuliang.github.io/page2/">2</a></li>
-            
         
-            
-                <li><a href="http://qiuliang.github.io/page3/">3</a></li>
-            
-        
-            
-                <li class="current"><a href="javascript:void(0);">4</a></li>
-            
-        
-    </ul>
+    </div>
 </nav>
+<div class="comment">
+    
+        <div class="comment-cnt">
+            
+<div id="disqus_thread"></div>
+<script>
+var disqus_config = function () {
+	this.page.url = "http://www.qiuliang.net/tech/2017/09/19/redis-pipeline-mget-mset.html"; // <--- use canonical URL
+	this.page.identifier = "/tech/2017/09/19/redis-pipeline-mget-mset";
+};
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+
+s.src = '//qiuliang.disqus.com/embed.js'; // <--- use Disqus shortname
+
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
 
 
+        </div>
+    
+</div>
 
         </section>
         <footer class="foot" id="violet-foot">
