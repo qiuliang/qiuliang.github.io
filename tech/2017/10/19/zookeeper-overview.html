@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta charset="utf-8" />
+    <title>
+        
+            ZooKeeper 简介及应用
+                 
+    </title>
+    <meta name="generator" content="Jekyll" />
+    <meta name="author" content="" />
+    <meta name="description" content="简单来讲，ZooKeeper 就是一个可扩展的高吞吐分布式协调系统。基本上通过解答以下几个问题，能大致对ZooKeeper 做一个快速的了解。 " />
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <!-- //页面样式 -->
+    <link rel="stylesheet" href="http://qiuliang.github.io/themes/violet/css/style.css" type="text/css" />
+    <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css" rel="stylesheet">
+    <!--<link href='http://fonts.googleapis.com/css?family=Spirax' rel='stylesheet' type='text/css'>-->
+    <!--<link rel="shortcut icon" href="http://qiuliang.github.io/themes/violet/images/favicon.ico" type="image/x-icon" />-->
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+<body id="violet">
+    <div class="page-wrapper">
+        <section class="head" id="violet-head">
+            <header class="header" id="violet-header">
+                <h1 class="logo"><a href="http://qiuliang.github.io">Qiuliang's Site</a></h1>
+                <h2 class="subtitle">做一个独立思考和具备创新能力的人，打造谦逊和强大的内心</h2>
+            </header>
+            <nav class="nav" id="violet-nav">
+                <ul class="nav-list">
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="/index.html">
+                            首页
+                        </a>
+                        
+                    </li>
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="/archives.html">
+                            文章归档
+                        </a>
+                        
+                    </li>
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="/contact.html">
+                            联系我
+                        </a>
+                        
+                    </li>
+                    
+                    
+                    
+                    <li class="nav-item ">
+                        <a href="https://github.com/qiuliang/qiuliang.github.io">
+                            View on github
+                        </a>
+                        
+                    </li>
+                    
+                </ul>
+            </nav>
+        </section>
+        <section class="main" id="violet-main">
+            <article class="main-article main-article-page">
+    <div class="violet-title">
+        <h3 class="violet-title-item">ZooKeeper 简介及应用</h3>
+    </div>
+    <div class="violet-post">
+        <p class="main-article-meta"><time pubdate="">2017-10-19</time></p>
+        <div class="main-article-contant">
+            <p>早几年就接触过ZooKeeper，应用不算深入，理解不算透彻，趁着近期略有闲暇，觉得有必要把相关的知识点梳理和总结一下。</p>
+
+<h2 id="zookeeper-">ZooKeeper 简介</h2>
+
+<p>简单来讲，ZooKeeper 就是一个可扩展的高吞吐分布式协调系统。
+基本上通过解答以下几个问题，能大致对 ZooKeeper 做一个快速的了解。 </p>
+
+<h3 id="zookeeper--1">ZooKeeper 是什么？</h3>
+
+<p>其前身由yahoo开发（目前已成为Apache的一个顶级项目），用于解决分布式系统中的数据一致性问题，因所有的分布式系统都会面临这一问题，所以在开发hadoop时将这个问题抽象出来，提出了一个独立和通用的解决方案，也就是现在的zookeeper。由于zookeeper具备如下的优势，逐步成为很多知名分布式系统的基础组件，例如：hadoop、kafka、dubbo等。</p>
+
+<h3 id="section">设计目标</h3>
+
+<ul>
+  <li>类似于标准文件系统，各个进程之间的协调通过共享分级命名空间，目录或者文件被称为 <code>znodes</code> ，这些数据都会被保存到zk的实例内存中</li>
+  <li>以集群形式提供服务</li>
+  <li>有序性</li>
+  <li>高性能</li>
+  <li>极简api
+  一共7个（create、delete、exist、get data、set data、get children、sync）</li>
+</ul>
+
+<h3 id="zookeeper--2">ZooKeeper 结构</h3>
+
+<p>一般来讲，ZooKeeper 服务集群由大于等于3的单数个服务器构成，在每台服务器内存中维护类似于文件系统的树形数据结构，其中的一台作为主控节点，其余作为从属节点。写操作只能由主控节点响应，读可由任务节点响应，如果服务期间主控节点宕机，则其余节点可再选举出新的主控节点。</p>
+
+<p>从这个结构设计来看，主控节点因只有一个，在写操作上天然存在瓶颈，所以更适合读多写少的应用场景。</p>
+
+<p><strong>集群结构</strong></p>
+
+<p><img src="/images/2017/zk-arch.png" alt="" /></p>
+
+<p><strong>节点模型</strong></p>
+
+<p><img src="/images/2017/zk-node.png" alt="" /></p>
+
+<h3 id="zookeeper--3">ZooKeeper 优势</h3>
+
+<ul>
+  <li>基于watcher的通知回调机制，基于该机制，可实现配置管理的热加载、服务注册和发现等等</li>
+  <li>性能表现优异，能支撑上万客户端的并发操作</li>
+  <li>使用zab作为其一致性协议实现，简单介绍一下，zab协议脱胎于Paxos，后者以难于理解和实现著称，更多是在学术界研究，工程难以实施，而 zab 协议简化了 Paxos 中的二阶段提交，提升了系统性能；利用自增序列，保证了顺序处理逻辑以及更容易的故障恢复实现。</li>
+</ul>
+
+<h3 id="section-1">主要应用场景</h3>
+
+<ul>
+  <li>分布式锁</li>
+  <li>服务注册</li>
+  <li>配置管理</li>
+  <li>名称服务</li>
+  <li>分布式锁</li>
+  <li>leader选举</li>
+</ul>
+
+<h2 id="quick-start">Quick Start</h2>
+
+<h3 id="section-2">系统要求</h3>
+
+<p>zookeeper server 端可运行于主流linux发行版和windows之上，软件环境需要依赖jdk，版本大于1.7即可。
+如采用集群方式部署，3个节点是最小化要求。</p>
+
+<p>据官方介绍，zk对硬件要求不是很高，2 Core / 2G RAM / 80G 即可。</p>
+
+<p>本文环境信息：</p>
+
+<ul>
+  <li>centos 6.6</li>
+  <li>openjdk 1.8</li>
+  <li>zookeeper 3.4.8</li>
+</ul>
+
+<h3 id="section-3">配置文件</h3>
+
+<p>一般位于 ./conf/zoo.cfg，示例如下：</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">tickTime</span><span class="o">=</span>2000
+<span class="nv">dataDir</span><span class="o">=</span>/var/lib/zookeeper
+<span class="nv">clientPort</span><span class="o">=</span>2181
+<span class="nv">initLimit</span><span class="o">=</span>5
+<span class="nv">syncLimit</span><span class="o">=</span>2
+server.1<span class="o">=</span>zoo1:2888:3888
+server.2<span class="o">=</span>zoo2:2888:3888
+server.3<span class="o">=</span>zoo3:2888:3888</code></pre></figure>
+
+<h4 id="section-4">几个容易理解错误的配置</h4>
+
+<ul>
+  <li>initLimit  # The number of ticks that the initial synchronization phase can take</li>
+</ul>
+
+<p>初始连接到 leader 节点的超时时间，具体的 value 指 tickTime 的倍数，如果设置为5，则超时为10秒。</p>
+
+<ul>
+  <li>syncLimit  # The number of ticks that can pass between sending a request and getting an acknowledgement</li>
+</ul>
+
+<p>集群中 follower 到 leader 的每次请求超时时间</p>
+
+<h4 id="section-5">集群信息配置</h4>
+
+<p>server.{no}={host}:{cordinate_port}:{election_port}</p>
+
+<ul>
+  <li>no  # 服务器编号</li>
+  <li>host  # 服务器IP或主机名</li>
+  <li>cordinate_port  # 主从server之间的通讯端口</li>
+  <li>election_port  # 选举端口</li>
+</ul>
+
+<h3 id="section-6">命令行工具</h3>
+
+<h4 id="server">启动server</h4>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">./bin/zkServer.sh start</code></pre></figure>
+
+<h4 id="section-7">四字命令</h4>
+
+<p>结合网络工具 nc ，zookeeper 提供了一些四字命令来查询服务器相关信息，例如：</p>
+
+<p>查看该服务器上的统计信息：</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">echo </span>stat <span class="p">|</span> nc 127.0.0.1 2181</code></pre></figure>
+
+<p>输出如下：</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">Latency min/avg/max: 0/0/4372
+Received: 97613067
+Sent: 97613133
+Connections: 7
+Outstanding: 0
+Zxid: 0x6000beb9a
+Mode: leader
+Node count: 150</code></pre></figure>
+
+<h4 id="zkclish">zkCli.sh</h4>
+
+<p>zookeeper 提供了一个类 shell 的一个客户端工具 zkCli.sh ，可方便查看服务器信息和进行相关管理操作。</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">sh ./zkCli.sh -server 127.0.0.1:2181</code></pre></figure>
+
+<h3 id="section-8">常见问题</h3>
+
+<blockquote>
+  <p>如启动失败，会在 ./bin 目录下生成 zookeeper.out 文件，可查询具体出错原因。</p>
+</blockquote>
+
+<h4 id="myid">缺少myid文件</h4>
+
+<p>/var/lib/zookeeper/myid file is missing</p>
+
+<p>到相应目录创建该文件，并编辑该文件的值为当前 server 的序号。</p>
+
+<h2 id="section-9">参考</h2>
+
+<ul>
+  <li><a href="https://zookeeper.apache.org/doc/trunk/zookeeperOver.html">官方Overview</a></li>
+</ul>
+
+
+        </div>
+    </div>
+</article>
+<nav class="pagination fn-clear" id="violet-paging">
+    <div class="pagination-list">
+        
+        <a class="prev" href="/tech/2017/09/19/redis-pipeline-mget-mset.html" rel="bookmark"><i class="fa fa-chevron-circle-left"></i>redis pipeline和mget、mset</a>
+        
+        
+    </div>
+</nav>
+<div class="comment">
+    
+        <div class="comment-cnt">
+            
+<div id="disqus_thread"></div>
+<script>
+var disqus_config = function () {
+	this.page.url = "http://www.qiuliang.net/tech/2017/10/19/zookeeper-overview.html"; // <--- use canonical URL
+	this.page.identifier = "/tech/2017/10/19/zookeeper-overview";
+};
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+
+s.src = '//qiuliang.disqus.com/embed.js'; // <--- use Disqus shortname
+
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+
+        </div>
+    
+</div>
+
+        </section>
+        <footer class="foot" id="violet-foot">
+            <div class="footer fn-clear">
+                <!--<h1 class="logo">Qiuliang's Site</h1>-->
+            </div>
+            <div class="copyright">
+                <div class="copyright-cnt fn-clear">
+                    
+                    <a class="follow" href="https://www.facebook.com/liang.qiu.1" target="_blank"><i class="fa fa-facebook"></i></a>
+                    
+                    <a class="follow" href="http://github.com/qiuliang" target="_blank"><i class="fa fa-github"></i></a>
+                    
+                    <a class="follow" href="http://www.zhanxin.info" target="_blank"><i class="fa fa-twitter"></i></a>
+                    
+                    <a class="follow" href="http://www.zhanxin.info" target="_blank"><i class="fa fa-rss"></i></a>
+                    
+                    <p class="text">© Powered by <a href="http://jekyllrb.com/">Jekyll</a>. Theme : <a href="http://www.zhanxin.info">Violet</a></p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/jquery-1.8.3.js"></script>
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/jquery-scrollTo.js"></script>
+    <script type="text/javascript" src="http://qiuliang.github.io/themes/violet/js/common.js"></script>
+    <script type="text/javascript">
+        var headImgArr = [];
+        
+            headImgArr.push("/themes/violet/images/hdbg01.jpg");
+        
+            headImgArr.push("/themes/violet/images/hdbg02.jpg");
+        
+            headImgArr.push("/themes/violet/images/hdbg03.jpg");
+        
+            headImgArr.push("/themes/violet/images/hdbg04.jpg");
+        
+        if(headImgArr.length <= 0) {
+            headImgArr = ["/themes/violet/images/hdbg03.jpg"];
+            var item = 0;
+        } else {
+            var item = Math.floor(Math.random() * (headImgArr.length));
+        }
+        $("#violet-head").css({
+            "background-image": "url(" + headImgArr[item] + ")"
+        });
+    </script>
+    
+</body>
+</html>

@@ -2,6 +2,24 @@
 <articles xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <article>
+	<title>ZooKeeper 简介及应用</title>
+	<url>http://qiuliang.github.io/tech/2017/10/19/zookeeper-overview.html</url>
+	<date>2017-10-19</date>
+</article>
+
+<article>
+	<title>redis pipeline和mget、mset</title>
+	<url>http://qiuliang.github.io/tech/2017/09/19/redis-pipeline-mget-mset.html</url>
+	<date>2017-09-19</date>
+</article>
+
+<article>
+	<title>孩子就是我们的影子：关于家庭教育的一点思考</title>
+	<url>http://qiuliang.github.io/life/2017/04/25/family-education.html</url>
+	<date>2017-04-25</date>
+</article>
+
+<article>
 	<title>Java内存模型解析</title>
 	<url>http://qiuliang.github.io/tech/2016/09/14/jvm-ram-module.html</url>
 	<date>2016-09-14</date>

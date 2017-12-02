@@ -22,6 +22,21 @@
     </url>
     
     <url>
+        <loc>http://qiuliang.github.io/tech/2017/10/19/zookeeper-overview.html</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>http://qiuliang.github.io/tech/2017/09/19/redis-pipeline-mget-mset.html</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>http://qiuliang.github.io/life/2017/04/25/family-education.html</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
         <loc>http://qiuliang.github.io/tech/2016/09/14/jvm-ram-module.html</loc>
         <priority>0.8</priority>
     </url>

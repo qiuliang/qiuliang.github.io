@@ -4,13 +4,261 @@
    <title>Qiuliang's Site</title>
    <link href="http://qiuliang.github.io/atom.xml" rel="self" type="application/atom+xml"/>
    <link href="http://qiuliang.github.io" rel="alternate" type="text/html" />
-   <updated>2016-09-15T11:02:06+08:00</updated>
+   <updated>2017-12-02T22:01:03+08:00</updated>
    <id>http://qiuliang.github.io</id>
    <author>
      <name></name>
      <email></email>
    </author>
 
+   
+   <entry>
+     <title>ZooKeeper 简介及应用</title>
+     <link href="http://qiuliang.github.io/tech/2017/10/19/zookeeper-overview.html"/>
+     <updated>2017-10-19T00:00:00+08:00</updated>
+     <id>http://qiuliang.github.io/tech/2017/10/19/zookeeper-overview</id>
+     <content type="html">&lt;p&gt;早几年就接触过ZooKeeper，应用不算深入，理解不算透彻，趁着近期略有闲暇，觉得有必要把相关的知识点梳理和总结一下。&lt;/p&gt;
+
+&lt;h2 id=&quot;zookeeper-&quot;&gt;ZooKeeper 简介&lt;/h2&gt;
+
+&lt;p&gt;简单来讲，ZooKeeper 就是一个可扩展的高吞吐分布式协调系统。
+基本上通过解答以下几个问题，能大致对 ZooKeeper 做一个快速的了解。 &lt;/p&gt;
+
+&lt;h3 id=&quot;zookeeper--1&quot;&gt;ZooKeeper 是什么？&lt;/h3&gt;
+
+&lt;p&gt;其前身由yahoo开发（目前已成为Apache的一个顶级项目），用于解决分布式系统中的数据一致性问题，因所有的分布式系统都会面临这一问题，所以在开发hadoop时将这个问题抽象出来，提出了一个独立和通用的解决方案，也就是现在的zookeeper。由于zookeeper具备如下的优势，逐步成为很多知名分布式系统的基础组件，例如：hadoop、kafka、dubbo等。&lt;/p&gt;
+
+&lt;h3 id=&quot;section&quot;&gt;设计目标&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;类似于标准文件系统，各个进程之间的协调通过共享分级命名空间，目录或者文件被称为 &lt;code&gt;znodes&lt;/code&gt; ，这些数据都会被保存到zk的实例内存中&lt;/li&gt;
+  &lt;li&gt;以集群形式提供服务&lt;/li&gt;
+  &lt;li&gt;有序性&lt;/li&gt;
+  &lt;li&gt;高性能&lt;/li&gt;
+  &lt;li&gt;极简api
+  一共7个（create、delete、exist、get data、set data、get children、sync）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;zookeeper--2&quot;&gt;ZooKeeper 结构&lt;/h3&gt;
+
+&lt;p&gt;一般来讲，ZooKeeper 服务集群由大于等于3的单数个服务器构成，在每台服务器内存中维护类似于文件系统的树形数据结构，其中的一台作为主控节点，其余作为从属节点。写操作只能由主控节点响应，读可由任务节点响应，如果服务期间主控节点宕机，则其余节点可再选举出新的主控节点。&lt;/p&gt;
+
+&lt;p&gt;从这个结构设计来看，主控节点因只有一个，在写操作上天然存在瓶颈，所以更适合读多写少的应用场景。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;集群结构&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/2017/zk-arch.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;节点模型&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/2017/zk-node.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;zookeeper--3&quot;&gt;ZooKeeper 优势&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;基于watcher的通知回调机制，基于该机制，可实现配置管理的热加载、服务注册和发现等等&lt;/li&gt;
+  &lt;li&gt;性能表现优异，能支撑上万客户端的并发操作&lt;/li&gt;
+  &lt;li&gt;使用zab作为其一致性协议实现，简单介绍一下，zab协议脱胎于Paxos，后者以难于理解和实现著称，更多是在学术界研究，工程难以实施，而 zab 协议简化了 Paxos 中的二阶段提交，提升了系统性能；利用自增序列，保证了顺序处理逻辑以及更容易的故障恢复实现。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;section-1&quot;&gt;主要应用场景&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;分布式锁&lt;/li&gt;
+  &lt;li&gt;服务注册&lt;/li&gt;
+  &lt;li&gt;配置管理&lt;/li&gt;
+  &lt;li&gt;名称服务&lt;/li&gt;
+  &lt;li&gt;分布式锁&lt;/li&gt;
+  &lt;li&gt;leader选举&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;quick-start&quot;&gt;Quick Start&lt;/h2&gt;
+
+&lt;h3 id=&quot;section-2&quot;&gt;系统要求&lt;/h3&gt;
+
+&lt;p&gt;zookeeper server 端可运行于主流linux发行版和windows之上，软件环境需要依赖jdk，版本大于1.7即可。
+如采用集群方式部署，3个节点是最小化要求。&lt;/p&gt;
+
+&lt;p&gt;据官方介绍，zk对硬件要求不是很高，2 Core / 2G RAM / 80G 即可。&lt;/p&gt;
+
+&lt;p&gt;本文环境信息：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;centos 6.6&lt;/li&gt;
+  &lt;li&gt;openjdk 1.8&lt;/li&gt;
+  &lt;li&gt;zookeeper 3.4.8&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;section-3&quot;&gt;配置文件&lt;/h3&gt;
+
+&lt;p&gt;一般位于 ./conf/zoo.cfg，示例如下：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;tickTime&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;2000
+&lt;span class=&quot;nv&quot;&gt;dataDir&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/var/lib/zookeeper
+&lt;span class=&quot;nv&quot;&gt;clientPort&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;2181
+&lt;span class=&quot;nv&quot;&gt;initLimit&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;5
+&lt;span class=&quot;nv&quot;&gt;syncLimit&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;2
+server.1&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;zoo1:2888:3888
+server.2&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;zoo2:2888:3888
+server.3&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;zoo3:2888:3888&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h4 id=&quot;section-4&quot;&gt;几个容易理解错误的配置&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;initLimit  # The number of ticks that the initial synchronization phase can take&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;初始连接到 leader 节点的超时时间，具体的 value 指 tickTime 的倍数，如果设置为5，则超时为10秒。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;syncLimit  # The number of ticks that can pass between sending a request and getting an acknowledgement&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;集群中 follower 到 leader 的每次请求超时时间&lt;/p&gt;
+
+&lt;h4 id=&quot;section-5&quot;&gt;集群信息配置&lt;/h4&gt;
+
+&lt;p&gt;server.{no}={host}:{cordinate_port}:{election_port}&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;no  # 服务器编号&lt;/li&gt;
+  &lt;li&gt;host  # 服务器IP或主机名&lt;/li&gt;
+  &lt;li&gt;cordinate_port  # 主从server之间的通讯端口&lt;/li&gt;
+  &lt;li&gt;election_port  # 选举端口&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;section-6&quot;&gt;命令行工具&lt;/h3&gt;
+
+&lt;h4 id=&quot;server&quot;&gt;启动server&lt;/h4&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;./bin/zkServer.sh start&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h4 id=&quot;section-7&quot;&gt;四字命令&lt;/h4&gt;
+
+&lt;p&gt;结合网络工具 nc ，zookeeper 提供了一些四字命令来查询服务器相关信息，例如：&lt;/p&gt;
+
+&lt;p&gt;查看该服务器上的统计信息：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;nb&quot;&gt;echo &lt;/span&gt;stat &lt;span class=&quot;p&quot;&gt;|&lt;/span&gt; nc 127.0.0.1 2181&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;输出如下：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;Latency min/avg/max: 0/0/4372
+Received: 97613067
+Sent: 97613133
+Connections: 7
+Outstanding: 0
+Zxid: 0x6000beb9a
+Mode: leader
+Node count: 150&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h4 id=&quot;zkclish&quot;&gt;zkCli.sh&lt;/h4&gt;
+
+&lt;p&gt;zookeeper 提供了一个类 shell 的一个客户端工具 zkCli.sh ，可方便查看服务器信息和进行相关管理操作。&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;sh ./zkCli.sh -server 127.0.0.1:2181&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h3 id=&quot;section-8&quot;&gt;常见问题&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;如启动失败，会在 ./bin 目录下生成 zookeeper.out 文件，可查询具体出错原因。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4 id=&quot;myid&quot;&gt;缺少myid文件&lt;/h4&gt;
+
+&lt;p&gt;/var/lib/zookeeper/myid file is missing&lt;/p&gt;
+
+&lt;p&gt;到相应目录创建该文件，并编辑该文件的值为当前 server 的序号。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-9&quot;&gt;参考&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://zookeeper.apache.org/doc/trunk/zookeeperOver.html&quot;&gt;官方Overview&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+</content>
+   </entry>
+   
+   <entry>
+     <title>redis pipeline和mget、mset</title>
+     <link href="http://qiuliang.github.io/tech/2017/09/19/redis-pipeline-mget-mset.html"/>
+     <updated>2017-09-19T00:00:00+08:00</updated>
+     <id>http://qiuliang.github.io/tech/2017/09/19/redis-pipeline-mget-mset</id>
+     <content type="html">&lt;h2 id=&quot;pipeline&quot;&gt;为什么需要pipeline？&lt;/h2&gt;
+
+&lt;p&gt;因为redis本身是基于request/response模式，每一个命令都需要等待上一个命令响应后进行处理，中间需要经过RTT（Round Time Trip，往返延时，表示发送端从发送数据开始，到发送端收到来自接收端的确认，所需要的时间。），并且需要频繁调用系统IO。&lt;/p&gt;
+
+&lt;h2 id=&quot;pipeline-1&quot;&gt;pipeline应用场景&lt;/h2&gt;
+
+&lt;p&gt;多个命令需要被及时提交，且这些命令的响应结果没有相互依赖。&lt;/p&gt;
+
+&lt;h2 id=&quot;section&quot;&gt;好处&lt;/h2&gt;
+
+&lt;p&gt;可较大提升性能&lt;/p&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;需要注意&lt;/h2&gt;
+&lt;ul&gt;
+  &lt;li&gt;不要和常规命令client共用一个链接，因为pipeline是独占连接的，如果管道内命令太多，可能会造成请求超时&lt;/li&gt;
+  &lt;li&gt;可发送命令数量受到客户端缓冲区大小限制，如超过限制，则flush到redis&lt;/li&gt;
+  &lt;li&gt;redis server存在query buffer限制，默认是1GB，如果超过这个值，客户端会被强制断掉&lt;/li&gt;
+  &lt;li&gt;redis server存在output buffer限制，受到maxmemory配置限制&lt;/li&gt;
+  &lt;li&gt;要实现pipeline，同时需要服务器端和客户端的支持&lt;/li&gt;
+  &lt;li&gt;redis cluster不建议使用pipeline，容易产生max redirect错误&lt;/li&gt;
+  &lt;li&gt;twem proxy可以支持pipeline&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;section-2&quot;&gt;局限性&lt;/h2&gt;
+&lt;p&gt;当某个命令的执行需要依赖前一个命令的返回结果时，无法使用pipeline。&lt;/p&gt;
+
+&lt;h2 id=&quot;mgetmset&quot;&gt;mget和mset&lt;/h2&gt;
+
+&lt;p&gt;mset a “a1” b “b” c “c1”
+mget a b c &lt;/p&gt;
+
+&lt;p&gt;mget和mset命令也是为了减少网络连接和传输时间所设置的，其本质和pipeline的应用区别不大，但是在特定场景下只能用pipeline实现，例如：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;get a
+set b ‘1’
+incr b
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;pipeline适合执行这种连续，且无相关性的命令。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;根据大家的测试反馈，在key数量非常多的时候，mget命令性能可能优于pipeline。（未做实测考证）&lt;/p&gt;
+&lt;/blockquote&gt;
+
+</content>
+   </entry>
+   
+   <entry>
+     <title>孩子就是我们的影子：关于家庭教育的一点思考</title>
+     <link href="http://qiuliang.github.io/life/2017/04/25/family-education.html"/>
+     <updated>2017-04-25T00:00:00+08:00</updated>
+     <id>http://qiuliang.github.io/life/2017/04/25/family-education</id>
+     <content type="html">&lt;h2 id=&quot;section&quot;&gt;学校教育能带给我们什么&lt;/h2&gt;
+
+&lt;p&gt;大概在半年多以前，也就是去年的6、7月份，我们正忙着准备孩子入学报名的事情，这对我们来讲，无疑为一件大事，因为女儿从此就要进入人生中的一个新阶段：上小学。我们想象在两个月后，她应该坐在宽敞明亮的地方，会要认识很多新的小伙伴，她也许会觉得喜悦，但更多的可能是好奇，从此将要开始度过一段漫长、美好单纯的时光，同样也是充满了挑战和汗水的时光，这件事如此重要，以至于作为父母的我们会有一些焦虑，希望她在小学生活中收获快乐和友爱，同时也希望她能求知、明理，懂得付出才有收获，懂得坚持才有希望。&lt;/p&gt;
+
+&lt;p&gt;而这些，我们也都清楚，如果完完全全把孩子交给学校，家长则作为旁观者，未来的结果一定是收获失望。在学校里，孩子与老师同学朝夕相处，从师长那里习得知识，从和同学的互动中习得与人沟通协作的能力，但更重要的是：孩子会从自己的原生家庭中，受到更直接、更强大的影响，家庭是因，学校里的表现是果。如果孩子在学校里的表现让我们失望，请先反思，我们是如何引导孩子，是如何去处理碰到的问题的？我们认为，其实不需要太多刻意的教育，孩子也从来都不需要被“教育”，她就是一张白纸，我们怎么做，孩子就会按照我们的实际行动，呈现出或优美、或杂乱的线条。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;我们如何影响孩子&lt;/h2&gt;
+
+&lt;p&gt;孩子注意力不集中，做作业不认真。需要想一想，是否在孩子学习功课的时候，我们在看电视？或者在玩手机？
+孩子总是乱放东西，玩完玩具铺满一地。需要想一想，我们自己的衣服、鞋子是否随手一扔？各种生活用品杂物也是到处都有？
+孩子没有耐性爱着急。需要想一想，我们是否当着孩子的面，彼此争吵？是否在面对孩子的坏习惯时，我们按捺不住心头的怒气而呵斥孩子？
+孩子不爱看书，喜欢看动画片。需要想一想，我们自己有多久没有看完过一本书？家里是否有随时开启阅读的氛围？有没有方便孩子拿取的书架？&lt;/p&gt;
+
+&lt;p&gt;这些都只是家庭生活中一个个极小的片段，这些片段不断地累加，最终造就了你眼中的孩子，所有的结果都是我们自己的选择。既不能埋怨孩子，也不能寄希望于他人，家长必须为这样的结果负责，孩子的任何问题，最终也都能在家长身上找到那个最根本的因。孩子本就是我们的影子啊，作为她最亲近的人，你所说的话，所做的一切，都将对她产生潜移默化且巨大的影响，甚至很多事情无法用个性、偶然去解释，这种力量强大到我们自己都难以置信，但又实实在在的影响着我们、影响着我们的孩子。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-2&quot;&gt;每个孩子都是天使&lt;/h2&gt;
+
+&lt;p&gt;但即使家长做的再好，孩子总有犯错误的时候，面对孩子的问题，不要因为孩子的错误而湮没她身上的闪光点，用爱心和智慧让孩子感受教育的宽容和善良。没有一个孩子是不想得到周围人的肯定的，特别是父母的欣赏。如果孩子能受到最亲近的人的鼓励，便有了战胜一切困难的勇气和决心。&lt;/p&gt;
+
+&lt;p&gt;我们所处的这个时代，急剧变化且精彩纷呈，信息的获取速度超越人类以往任何一个时期，但就孩子的教育问题上，我们很难从各种各样繁杂的声音中找出一个万能的方子。唯有不断探索和学习，不断试错和调整，做到知行合一，和孩子一起，努力成就更好的自我。在她的人生道路上，一起面对困难，帮助她成为她所期望的自己，而不是我们眼中所期望的样子。即使她现在还不完美，我们也要足够宽容和耐心，静待花开的时刻。&lt;/p&gt;
+
+</content>
+   </entry>
    
    <entry>
      <title>Java内存模型解析</title>
@@ -751,284 +999,6 @@ jenkins version : 1.624&lt;/p&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;完成以上安装和配置工作后，基本上一套标准的CI工作流程就能跑起来了，enjoy！&lt;/p&gt;
-</content>
-   </entry>
-   
-   <entry>
-     <title>git分支模型探讨</title>
-     <link href="http://qiuliang.github.io/tech/2015/07/25/git-branch-module.html"/>
-     <updated>2015-07-25T00:00:00+08:00</updated>
-     <id>http://qiuliang.github.io/tech/2015/07/25/git-branch-module</id>
-     <content type="html">&lt;p&gt;在阅读本文之前，假设你已经熟悉了git的常用命令，并且对git的分支模型有了基本的了解。&lt;/p&gt;
-
-&lt;p&gt;基础常用命令：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;git clone&lt;/li&gt;
-  &lt;li&gt;git add&lt;/li&gt;
-  &lt;li&gt;git commit &lt;/li&gt;
-  &lt;li&gt;git push&lt;/li&gt;
-  &lt;li&gt;git checkout&lt;/li&gt;
-  &lt;li&gt;git branch&lt;/li&gt;
-  &lt;li&gt;git fetch&lt;/li&gt;
-  &lt;li&gt;git merge&lt;/li&gt;
-  &lt;li&gt;git pull&lt;/li&gt;
-  &lt;li&gt;…&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;关于git分支模型，建议先阅读如下资料：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://www.ruanyifeng.com/blog/2012/07/git.html&quot;&gt;阮一峰整理的一个比较简单的git分支模型&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/xirong/my-git/blob/master/git-workflow-tutorial.md&quot;&gt;较为全面的几种git分支模型介绍&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;如下是网络上流传比较广泛的一个较为成熟的git分支示意图，基本能满足一般团队或个人进行代码管理。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/blog/git/4.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;但每个team都有自己的需求和特点，生搬硬套不一定是合适的，和同事花1个多小时的时间讨论了一下，认为适合我们team的分支模型，大致如下。&lt;/p&gt;
-
-&lt;h2 id=&quot;section&quot;&gt;需求背景&lt;/h2&gt;
-
-&lt;p&gt;主要的需求如下：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;能支持日常迭代开发、紧急线上bug修复、多功能并行开发&lt;/li&gt;
-  &lt;li&gt;大概50人左右的团队，平日迭代项目较多，且周期短（1~2周一个迭代）&lt;/li&gt;
-  &lt;li&gt;能够通过tag重建整个系统&lt;/li&gt;
-  &lt;li&gt;支持code review&lt;/li&gt;
-  &lt;li&gt;所有上线的代码必须都是经过测试保证，且能自动同步到下一次的迭代中&lt;/li&gt;
-  &lt;li&gt;能和公司的项目管理/持续集成系统整合&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;section-1&quot;&gt;分支模型说明&lt;/h2&gt;
-
-&lt;h3 id=&quot;section-2&quot;&gt;1. 日常迭代&lt;/h3&gt;
-
-&lt;h4 id=&quot;section-3&quot;&gt;1.1 流程说明&lt;/h4&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;项目负责人先初始化仓库&lt;/li&gt;
-  &lt;li&gt;拉分支，同时包括develop和release分支&lt;/li&gt;
-  &lt;li&gt;develop分支开发完成后，提交pull requests到release分支&lt;/li&gt;
-  &lt;li&gt;进行code review，通过则merge到release分支&lt;/li&gt;
-  &lt;li&gt;在release分支上进行build和生成上线包&lt;/li&gt;
-  &lt;li&gt;部署上线包，上线完成后再merge到master，并打tag&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/blog/git/1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h4 id=&quot;section-4&quot;&gt;1.2 后续迭代流程&lt;/h4&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;从master上一次tag处拉出分支，同时包括dev和release&lt;/li&gt;
-  &lt;li&gt;在dev上进行开发和提交&lt;/li&gt;
-  &lt;li&gt;开发完成后，提交pull request到release分支&lt;/li&gt;
-  &lt;li&gt;进行code review，通过则merge到release分支&lt;/li&gt;
-  &lt;li&gt;在release分支上进行build和生成上线包&lt;/li&gt;
-  &lt;li&gt;部署上线包，上线完成后再merge到master，并打tag&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/blog/git/2.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;section-5&quot;&gt;2. 在正常迭代同时有紧急线上问题修复&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;迭代分支同上&lt;/li&gt;
-  &lt;li&gt;同时再拉出hotfix开发和hotfix_release分支&lt;/li&gt;
-  &lt;li&gt;此时迭代和hotfix分支并行开发&lt;/li&gt;
-  &lt;li&gt;如果hotfix开发完成，并在hotfix_release分支进行提测并上线&lt;/li&gt;
-  &lt;li&gt;那么在迭代开发进行pull request前，应该要求先从master分支进行一次merge&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/blog/git/3.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;section-6&quot;&gt;3. 多功能并行&lt;/h3&gt;
-
-&lt;p&gt;理论上和hotfix分支模型没有区别。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-7&quot;&gt;相关规范&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;开发人员不应该操作master分支&lt;/li&gt;
-  &lt;li&gt;由每个迭代或项目的负责人来进行code review和进行merge操作&lt;/li&gt;
-  &lt;li&gt;各开发分支和release分支均应该push到远程仓库&lt;/li&gt;
-  &lt;li&gt;日常迭代和release分支在开发完成后应该被删除&lt;/li&gt;
-  &lt;li&gt;多人协作，应该使用同一个远程分支&lt;/li&gt;
-  &lt;li&gt;每次发起pull request前，都需要先从master分支merge代码&lt;/li&gt;
-&lt;/ul&gt;
-</content>
-   </entry>
-   
-   <entry>
-     <title>创新是这个世界的源动力 —《从0到1》</title>
-     <link href="http://qiuliang.github.io/book/2015/07/18/zero-to-one.html"/>
-     <updated>2015-07-18T00:00:00+08:00</updated>
-     <id>http://qiuliang.github.io/book/2015/07/18/zero-to-one</id>
-     <content type="html">&lt;p&gt;&lt;img src=&quot;http://img3.douban.com/lpic/s28012945.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;大概1个多月以前，领导向我们推荐了这本书，来自于硅谷创业教父Peter Thiel的大作，如果你还不甚了解Peter，推荐自行google，简单来说，就是Paypal的founder之一，后来又在很早的时候投资了Facebook，以及在硅谷参与或投资了众多的科技公司。而这本书，我想就是peter在创立或投资一家公司时的一些总结和思考，其中大部分的内容，来源于其在斯坦福的一次分享。&lt;/p&gt;
-
-&lt;p&gt;书的篇幅不长，各个章节之间也并没有严密的逻辑关系，在这些看似分散、跳跃的片段中，能否真的找到商业的秘密？我想答案一定是否定的，毕竟在这个复杂的世界里，没有什么一成不变的事情，今天的秘密，不过是明天的常识而已。而作者除了教导我们一些自身的经验之外，更多的是希望引发读者对未来、对商业、对创新的一些思考。&lt;/p&gt;
-
-&lt;h2 id=&quot;section&quot;&gt;关于过去和未来&lt;/h2&gt;
-
-&lt;p&gt;了解历史，正视历史，对于每一个科技创业者甚至于对每一个人而言，都有着非同寻常的意义。peter在本书中，花了较长的篇幅和详细的数据，来向我们说明了90年中后期开始的互联网泡沫，从何而来，又如何破灭。无数的公司在那场盛筵中从巅峰跌落至谷底，只有少之又少的公司经受住了考验，并逐渐的开始开花结果，peter所创立的Paypal就是其中之一，这样的经验对于每一个创业者来说，都是应该要重视和思考的。经验一定不应该是教条式的，它应该能引发我们思考：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;大胆尝试胜过于平庸保守&lt;/li&gt;
-  &lt;li&gt;坏计划也好过没计划&lt;/li&gt;
-  &lt;li&gt;竞争性市场很难赚钱&lt;/li&gt;
-  &lt;li&gt;营销和产品同样重要&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;世上没有人可以精准的预测未来，能看清楚未来一两年的人，已经非比一般；而能看清楚未来五到十年的人，已然超越了这世界绝大多数的普通人，至于更遥远的未来，应该只有神能做到了吧？&lt;/p&gt;
-
-&lt;p&gt;对于科技创业者，有一点却是毋庸置疑的，那就是未来，一定是进步的。在这个进步的未来中，保持敏锐的嗅觉，或许能让我们在未来的道路上，不至于走偏。而如果你恰巧知道了某一领域从无到有，从0到1的秘密，这样做出一番事业的几率应该会大大提升。&lt;/p&gt;
-
-&lt;p&gt;书中提出的一些观点，我们应该反复思考：&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;如果你想创造并获得持久的价值，不要只是跟风建立一个没有特色的企业。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;这一点其实对个人也同样适用，如果你想与众不同或是出类拔萃，不要跟风，做你自己，做真正有价值的事情。&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;在完全竞争中，企业着眼于短期利益，不可能对未来进行长期规划。要想将企业从每日的生存竞赛中解脱出来，唯一的方法就是：获取垄断利润。而失败的企业原因却相同：它们都无法逃脱竞争。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;这应该就是peter想向我们表达的一些商业的秘密，却有太多的人看不清楚。因此，新思想是一个初创公司最重要的力量，质疑现有观念，从零开始重新审视自己所做的一切。在任何一次潮流到来的时候，我们不是应该去抵制或是盲从，在潮流中保持独立的思考才是我们应该做的。&lt;/p&gt;
-
-&lt;p&gt;关于如何建立一个垄断企业，peter也给了我们一些建议，例如：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;占领小市场&lt;/li&gt;
-  &lt;li&gt;扩大规模&lt;/li&gt;
-  &lt;li&gt;破坏性创新&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;前人的经验，只是我们的一个指引，如何去做，最终决定权在于你自己。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-1&quot;&gt;关于秘密&lt;/h2&gt;
-
-&lt;p&gt;现在我们所知道的常识，在过去就是秘密。举几个科技方面的案例：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;人们虽然相隔万里，却能用电脑或手机利用网络进行面对面的交流&lt;/li&gt;
-  &lt;li&gt;随时随地使用手机来购物，并进行支付&lt;/li&gt;
-  &lt;li&gt;个人飞行背包也已经试飞成功&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;这些在过去几百上千年到最近十年的时间里，都被认为是天方夜谭或是完全不为人知的秘密。但现在却有很大一部分人是不愿意探索秘密的，大致总结为如下几个原因：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;我们从小受到的教育是渐进主义式的&lt;/li&gt;
-  &lt;li&gt;害怕犯错，规避风险，自然也就错失了探索秘密的机会&lt;/li&gt;
-  &lt;li&gt;过于自满&lt;/li&gt;
-  &lt;li&gt;现在扁平化的世界，使人们怀疑自己对秘密的探索&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;可事实还是有许多秘密等着我们去探索，在商业上也是一样，成功的企业建立于开放却未知的秘密之上，想想这些公司：Google解决了人们对信息的强烈需求；Airbnb解决了游客和业主的实际需求；Uber则在出行上打破常规。&lt;/p&gt;
-
-&lt;p&gt;好的企业是改变世界的密谋者。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-2&quot;&gt;有意思的创始人&lt;/h2&gt;
-
-&lt;p&gt;关于创始人和初创团队，peter发现了一个有趣的现象：很多成功的初创公司的创始人团队，都有着个性鲜明或特立独行的一面。这些特质或是天生，但大多数我认为是后天环境影响改变，这个改变遵循着一个规律：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;自己将其夸大&lt;/li&gt;
-  &lt;li&gt;其他人将其夸大&lt;/li&gt;
-  &lt;li&gt;真正的不同&lt;/li&gt;
-  &lt;li&gt;发展为极端特质&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;想想自己或是身边的人，是不是觉得很有道理？比如你做了一件自认为不错的事情，然后分享给你周围的人，他们也觉得你很牛逼，这个时候迫于压力或是迫于面子，你需要把这件事情真正做好，周而复始，在某个领域你将越来越牛。我想这应该是符合心理学或是人性的需要吧。&lt;/p&gt;
-
-&lt;p&gt;当然，拥有这样特质的人不一定会创立企业，但大多都会经营自己的个人品牌，比如LadyGaga，她生来如此吗？我想未必吧。这样的人或许生来矛盾，具有这种特质的人，从概率上来讲，创立一个成功企业的几率确实比常人大。不过，再非同寻常的人也不及一个优秀团队的力量来的大。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-3&quot;&gt;结语&lt;/h2&gt;
-
-&lt;p&gt;不管未来的趋势如何，我们都应该相信，未来不是自行发生的，它取决于你、我和我们身边的每一个人，无所作为，还是尽力而为？取决于我们自己；在日常中创新，在常规中重构，打破旧有思维的禁锢，保持独立的思考，才有可能从0到1。&lt;/p&gt;
-
-</content>
-   </entry>
-   
-   <entry>
-     <title>Markdown资源分享</title>
-     <link href="http://qiuliang.github.io/tool/2014/11/27/markdown-resource-share.html"/>
-     <updated>2014-11-27T00:00:00+08:00</updated>
-     <id>http://qiuliang.github.io/tool/2014/11/27/markdown-resource-share</id>
-     <content type="html">&lt;p&gt;&lt;code&gt;Markdown&lt;/code&gt;的核心，就是使用极为简单的标记语法，来书写具备良好外观格式的文档解析工具，使作者的核心关注在文档内容本身，而不是如何排版上。&lt;/p&gt;
-
-&lt;h2 id=&quot;section&quot;&gt;常用语法&lt;/h2&gt;
-
-&lt;p&gt;&lt;strong&gt;标题&lt;/strong&gt;&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;# 标题一&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;## 标题二&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;### 标题N&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;&lt;strong&gt;有序/无序列表&lt;/strong&gt;&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;- item
-- item2
-
-1. item1
-2. item2&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;&lt;strong&gt;引用&lt;/strong&gt;&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&amp;gt; 这里是引用内容&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;&lt;strong&gt;强调加粗&lt;/strong&gt;&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;**这里是加粗内容**&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;&lt;strong&gt;行内代码&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;这是一个&lt;code&gt;行内代码&lt;/code&gt;&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;这里是行内代码&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;&lt;strong&gt;代码高亮&lt;/strong&gt;&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;sb&quot;&gt;```&lt;/span&gt; ruby
-&lt;span class=&quot;nv&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;test1&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; a.gsub&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/&lt;span class=&quot;se&quot;&gt;\d&lt;/span&gt;+/,&lt;span class=&quot;s1&quot;&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-print a&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-print b&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-a.gsub!&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;/&lt;span class=&quot;se&quot;&gt;\d&lt;/span&gt;+/,&lt;span class=&quot;s1&quot;&gt;&amp;#39;b&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;sb&quot;&gt;```&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;h2 id=&quot;section-1&quot;&gt;推荐工具&lt;/h2&gt;
-
-&lt;h3 id=&quot;section-2&quot;&gt;客户端工具&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://markdownpad.com/&quot;&gt;MarkdownPad&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://www.mdcharm.com/&quot;&gt;MdCharm&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://pad.haroopress.com/&quot;&gt;Haroopad&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://25.io/mou/&quot;&gt;Mou&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://atom.io/&quot;&gt;Atom&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;markdown&quot;&gt;在线Markdown编辑器&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://dillinger.io&quot;&gt;dillinger.io&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://stackedit.io/editor&quot;&gt;stackedit&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://www.zybuluo.com/mdeditor&quot;&gt;CmdMarkdown&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://maxiang.info&quot;&gt;马克飞象&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;以上这些，是我平时收集的&lt;code&gt;Markdown&lt;/code&gt;文档编辑工具，几乎都是免费和开源工具，相信总有一款适合你，我个人平时使用&lt;code&gt;Haroopad&lt;/code&gt;、&lt;code&gt;Atom&lt;/code&gt;比较多一些。&lt;/p&gt;
-
-&lt;p&gt;如果上面的链接打开速度比较慢，请&lt;code&gt;翻墙&lt;/code&gt;，推荐翻墙服务：&lt;a href=&quot;http://refyt.com/?r=da2d2836b60e42ff&quot;&gt;云梯&lt;/a&gt;，该链接带有我的推荐码，你可以优惠10元，我可以得收益10元，谢谢！&lt;/p&gt;
-
-&lt;p&gt;Powered by Haroopad&lt;/p&gt;
 </content>
    </entry>
    
